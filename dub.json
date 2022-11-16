@@ -1,0 +1,58 @@
+{
+    "authors": [
+        "alpha"
+    ],
+    "copyright": "Copyright © 2022, alpha",
+    "description": "A minimal D application.",
+    "license": "proprietary",
+    "name": "sidero_image",
+    "dependencies": {
+        "sidero_image:colorimetry": "*"
+    },
+    "configurationsccc": [
+        {
+            "name": "library",
+            "targetType": "dynamicLibrary",
+            "versions": ["DynamicSideroImage"],
+            "buildOptions": [
+                "betterC"
+            ]
+        },
+        {
+            "name": "static",
+            "targetType": "staticLibrary",
+            "buildOptions": [
+                "betterC"
+            ]
+        },
+        {
+            "name": "unittest"
+        }
+    ],
+    "subPackages": [
+        {
+            "name": "colorimetry",
+            "targetType": "staticLibrary",
+            "importPaths": [
+                "colorimetry"
+            ],
+            "sourcePaths": [
+                "colorimetry"
+            ],
+            "dependencies": {
+                "sidero_base": "*"
+            },
+            "configurations": [
+                {
+                    "name": "default",
+                    "buildOptions": [
+                        "betterC"
+                    ]
+                },
+                {
+                    "name": "unittest"
+                }
+            ]
+        }
+    ]
+}
