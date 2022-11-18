@@ -2,6 +2,7 @@ module sidero.colorimetry.colorspace.defs;
 import sidero.base.allocators;
 import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
+import sidero.base.math.linear_algebra : Vec3d;
 
 @safe nothrow @nogc:
 
@@ -10,13 +11,40 @@ struct CIEXYZSample {
     /// CIE XYZ X, Y, Z channels
     double x, y, z;
     /// The white point for this sample
-    Illuminant illuminant;
+    CIEChromacityCoordinate illuminant;
 }
 
-/// Illuminant representation in CIE xyY
-struct Illuminant {
-    /// CIE xyY white point reference used in interchanagability between colorspaces
-    double xWhitePoint, yWhitePoint, YWhitePoint;
+///
+struct CIEChromacityCoordinate {
+    ///
+    CIExyYSample xyY;
+    ///
+    alias xyY this;
+
+@safe nothrow @nogc:
+
+    this(double x, double y) scope {
+        xyY.x = x;
+        xyY.y = y;
+    }
+
+    ///
+    double z() scope const pure {
+        return 1 - (xyY.x + xyY.y);
+    }
+}
+
+///
+struct CIExyYSample {
+    ///
+    double x, y, Y = 1;
+
+@safe nothrow @nogc:
+
+    ///
+    Vec3d asXYZ() scope const pure {
+        return Vec3d((x * Y) / y, Y, ((1f - x - y) * Y) / y);
+    }
 }
 
 ///
