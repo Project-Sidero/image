@@ -9,11 +9,14 @@
     "dependencies": {
         "sidero_image:colorimetry": "*"
     },
-    "configurationsccc": [
+    "mainSourceFile": "source/app.d",
+    "configurations": [
         {
             "name": "library",
             "targetType": "dynamicLibrary",
             "versions": ["DynamicSideroImage"],
+            "dflags": ["-preview=dip1000", "-preview=dip25"],
+            "dflags-windows-ldc": ["--link-defaultlib-shared", "--fvisibility=public"],
             "buildOptions": [
                 "betterC"
             ]
@@ -26,13 +29,16 @@
             ]
         },
         {
-            "name": "unittest"
+            "name": "unittest",
+            "subConfigurations": {
+                "sidero_image:colorimetry": "unittest"
+            }
         }
     ],
     "subPackages": [
         {
             "name": "colorimetry",
-            "targetType": "staticLibrary",
+            "targetType": "sourceLibrary",
             "importPaths": [
                 "colorimetry"
             ],
@@ -44,13 +50,15 @@
             },
             "configurations": [
                 {
-                    "name": "default",
+                    "name": "library",
+                    "targetType": "staticLibrary",
                     "buildOptions": [
                         "betterC"
                     ]
                 },
                 {
-                    "name": "unittest"
+                    "name": "unittest",
+                    "targetType": "sourceLibrary"
                 }
             ]
         }

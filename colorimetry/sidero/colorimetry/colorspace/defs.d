@@ -1,4 +1,4 @@
-module sidero.colorimetry.colorspace;
+module sidero.colorimetry.colorspace.defs;
 import sidero.base.allocators;
 import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
@@ -65,28 +65,28 @@ struct ColorSpace {
         return state.channels;
     }
 
-    ///
+    /// You may not need to call this, gamma is done automatically during conversion
     double gammaApply(double input) scope const {
         if (state is null || state.gammaApply is null)
             return input;
         return state.gammaApply(input, state);
     }
 
-    ///
+    /// Ditto
     double gammaUnapply(double input) scope const {
         if (state is null || state.gammaUnapply is null)
             return input;
         return state.gammaUnapply(input, state);
     }
 
-    ///
+    /// Gamma will be automatically applied
     Result!CIEXYZSample toXYZ(scope void[] input) scope const {
         if (state is null || state.toXYZ is null)
             return typeof(return)(NullPointerException("toXYZ is not implemented"));
         return state.toXYZ(input, state);
     }
 
-    ///
+    /// Gamma will be automatically removed
     ErrorResult fromXYZ(scope void[] output, scope CIEXYZSample input) scope const {
         if (state is null || state.fromXYZ is null)
             return typeof(return)(NullPointerException("fromXYZ is not implemented"));
@@ -235,5 +235,25 @@ struct ChannelSpecification {
                 return is(T == ulong);
             }
         }
+    }
+}
+
+///
+struct GammaNone {
+}
+
+///
+struct GammaPower {
+    ///
+    double factor;
+
+    ///
+    double apply(double input) {
+        return input ^^ factor;
+    }
+
+    ///
+    double unapply(double input) {
+        return input ^^ (1f / factor);
     }
 }

@@ -13,3 +13,7 @@ image-test-*
 *.o
 *.obj
 *.lst
+.idea/
+image.iml
+*.exp
+dub.selections.json
