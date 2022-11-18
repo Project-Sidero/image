@@ -6,17 +6,16 @@
     "description": "A minimal D application.",
     "license": "proprietary",
     "name": "sidero_image",
+    "dflags": ["-preview=dip1000", "-preview=dip25", "-allinst"],
     "dependencies": {
         "sidero_image:colorimetry": "*"
     },
-    "mainSourceFile": "source/app.d",
     "configurations": [
         {
             "name": "library",
             "targetType": "dynamicLibrary",
             "versions": ["DynamicSideroImage"],
-            "dflags": ["-preview=dip1000", "-preview=dip25"],
-            "dflags-windows-ldc": ["--link-defaultlib-shared", "--fvisibility=public"],
+            "dflags-windows-ldc": ["--fvisibility=public"],
             "buildOptions": [
                 "betterC"
             ]
@@ -52,6 +51,7 @@
                 {
                     "name": "library",
                     "targetType": "staticLibrary",
+                    "dflags": ["-preview=dip1000", "-preview=dip25", "-allinst"],
                     "buildOptions": [
                         "betterC"
                     ]
