@@ -102,46 +102,21 @@ struct RGBModel(Gamma) {
 
         {
             ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
+            channels[0].bits = channelBitCount;
+            channels[0].isSigned = false;
+            channels[0].isWhole = !isFloat;
+
+            channels[0].minimum = 0;
+            channels[0].maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
+            channels[0].clampMinimum = true;
+            channels[0].clampMaximum = true;
+
+            channels[1] = channels[0];
+            channels[2] = channels[0];
+
             channels[0].name = "r";
             channels[1].name = "g";
             channels[2].name = "b";
-
-            channels[0].bits = channelBitCount;
-            channels[1].bits = channelBitCount;
-            channels[2].bits = channelBitCount;
-
-            channels[0].isSigned = false;
-            channels[1].isSigned = false;
-            channels[2].isSigned = false;
-
-            channels[0].isWhole = !isFloat;
-            channels[1].isWhole = !isFloat;
-            channels[2].isWhole = !isFloat;
-
-            double min, max;
-
-            if (isFloat) {
-                min = 0;
-                max = 1;
-            } else {
-                min = 0;
-                max = cast(double)((1L << channelBitCount) - 1);
-            }
-
-            channels[0].minimum = min;
-            channels[1].minimum = min;
-            channels[2].minimum = min;
-
-            channels[0].maximum = max;
-            channels[1].maximum = max;
-            channels[2].maximum = max;
-
-            channels[0].clampMinimum = true;
-            channels[1].clampMinimum = true;
-            channels[2].clampMinimum = true;
-            channels[0].clampMaximum = true;
-            channels[1].clampMaximum = true;
-            channels[2].clampMaximum = true;
 
             this.channels = Slice!ChannelSpecification(channels, allocator);
             sampleSize = channels[0].numberOfBytes * 3;
