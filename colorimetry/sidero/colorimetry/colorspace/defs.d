@@ -9,9 +9,9 @@ import sidero.base.math.linear_algebra : Vec3d;
 /// This is a CIE XYZ color sample, it should not have any gamma applied.
 struct CIEXYZSample {
     /// CIE XYZ X, Y, Z channels
-    double x, y, z;
+    Vec3d sample;
     /// The white point for this sample
-    CIEChromacityCoordinate illuminant;
+    CIEChromacityCoordinate whitePoint;
 }
 
 ///
@@ -51,6 +51,7 @@ struct CIExyYSample {
 struct ColorSpace {
     private {
         import core.atomic : atomicLoad, atomicOp;
+
         State* state;
     }
 
@@ -137,8 +138,8 @@ struct ColorSpace {
         Result!CIEXYZSample function(scope void[] input, scope const State*) toXYZ;
         ErrorResult function(scope void[] output, scope CIEXYZSample input, scope const State*) fromXYZ;
 
-        void[] getExtraSpace() scope @system {
-            void* base = &this;
+        const(void)[] getExtraSpace() scope const @system {
+            const(void)* base = &this;
             base += State.sizeof;
             return base[0 .. length];
         }
@@ -152,7 +153,7 @@ struct ColorSpace {
         }
     }
 
-    State* allocate(RCAllocator allocator, size_t length) scope const @trusted {
+    static State* allocate(RCAllocator allocator, size_t length) @trusted {
         void[] data = allocator.makeArray!void(State.sizeof + length);
 
         State* ret = cast(State*)data.ptr;
@@ -264,6 +265,92 @@ struct ChannelSpecification {
             }
         }
     }
+
+    /// Will advance input value
+    double extractSample01(scope ref void[] buffer) scope {
+        double ret;
+
+        size_t nob = numberOfBytes();
+        assert(buffer.length >= nob);
+
+        void handle(T)() @trusted nothrow @nogc {
+            T* v = cast(T*)buffer.ptr;
+
+            ret = cast(double)*v;
+            ret -= minimum;
+            ret = (maximum - minimum) / ret;
+
+            buffer = buffer[T.sizeof .. $];
+        }
+
+        if (!isWhole) {
+            if (nob <= 4)
+                handle!float;
+            else
+                handle!double;
+        } else if (isSigned) {
+            if (nob == 1)
+                handle!byte;
+            else if (nob == 2)
+                handle!short;
+            else if (nob == 3 || nob == 4)
+                handle!int;
+            else
+                handle!long;
+        } else {
+            if (nob == 1)
+                handle!ubyte;
+            else if (nob == 2)
+                handle!ushort;
+            else if (nob == 3 || nob == 4)
+                handle!uint;
+            else
+                handle!ulong;
+        }
+
+        return ret;
+    }
+
+    /// Will advance input value
+    void store01Sample(scope ref void[] output, double input) scope {
+        size_t nob = numberOfBytes();
+        assert(output.length >= nob);
+
+        void handle(T)() @trusted nothrow @nogc {
+            T* v = cast(T*)output.ptr;
+
+            input *= maximum - minimum;
+            input += minimum;
+            *v = cast(T)input;
+
+            output = output[T.sizeof .. $];
+        }
+
+        if (!isWhole) {
+            if (nob <= 4)
+                handle!float;
+            else
+                handle!double;
+        } else if (isSigned) {
+            if (nob == 1)
+                handle!byte;
+            else if (nob == 2)
+                handle!short;
+            else if (nob == 3 || nob == 4)
+                handle!int;
+            else
+                handle!long;
+        } else {
+            if (nob == 1)
+                handle!ubyte;
+            else if (nob == 2)
+                handle!ushort;
+            else if (nob == 3 || nob == 4)
+                handle!uint;
+            else
+                handle!ulong;
+        }
+    }
 }
 
 ///
@@ -274,6 +361,8 @@ struct GammaNone {
 struct GammaPower {
     ///
     double factor;
+
+@safe nothrow @nogc:
 
     ///
     double apply(double input) {
