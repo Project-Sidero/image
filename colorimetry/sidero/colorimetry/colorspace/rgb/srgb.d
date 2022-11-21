@@ -22,6 +22,11 @@ ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear, bool approxG
 }
 
 ///
+ColorSpace sRGB(ubyte channelBitCount, bool isFloat, double gammaPowerFactor) {
+    return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaPower(gammaPowerFactor));
+}
+
+///
 struct sRGBGamma {
 @safe nothrow @nogc:
 
