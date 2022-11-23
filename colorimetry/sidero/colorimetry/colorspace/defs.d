@@ -122,6 +122,175 @@ struct ColorSpace {
         return state.fromXYZ(output, input, state);
     }
 
+    /// Adds auxiliary channels and implements swizzling
+    Result!ColorSpace withChannels(string swizzle,
+            scope Slice!ChannelSpecification auxillary = Slice!ChannelSpecification.init, RCAllocator allocator = RCAllocator.init) scope {
+        import sidero.base.algorithm : startsWith;
+
+        if (this.state is null)
+            return typeof(return).init;
+        if (allocator.isNull)
+            allocator = globalAllocator();
+
+        static bool isCompatibleSwizzle(string swizzle, scope Slice!ChannelSpecification current,
+                Slice!ChannelSpecification auxillary, out size_t count) {
+            // Requirements:
+            // - No channels in auxillary can be close to each other
+            // - No channels in auxillary can be close to current non-auxillary channels
+            // - all channels in current that are !isAuxillary must be in swizzle
+
+            foreach (i, aux1; auxillary) {
+                foreach (j, aux2; auxillary) {
+                    if (i == j)
+                        continue;
+
+                    if (aux1.name.length == 0 || aux2.name.length == 0)
+                        return false;
+
+                    if (aux1.name[0] == aux2.name[0])
+                        return false;
+                }
+
+                foreach (c; current) {
+                    if (c.name.length == 0)
+                        return false;
+
+                    if (c.isAuxillary)
+                        continue;
+
+                    if (aux1.name[0] == c.name[0])
+                        return false;
+                }
+            }
+
+            while (swizzle.length > 0) {
+                ChannelSpecification channel;
+
+                foreach (c; current) {
+                    if (!c.isAuxillary && swizzle.startsWith(c.name)) {
+                        channel = c;
+                        swizzle = swizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                foreach (c; auxillary) {
+                    if (swizzle.startsWith(c.name)) {
+                        channel = c;
+                        swizzle = swizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                foreach (c; current) {
+                    if (c.isAuxillary && swizzle.startsWith(c.name)) {
+                        channel = c;
+                        swizzle = swizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                return false;
+            FoundChannel:
+                count++;
+            }
+
+            return swizzle.length == 0;
+        }
+
+        size_t numberOfIntoChannels;
+        if (!isCompatibleSwizzle(swizzle, state.channels, auxillary, numberOfIntoChannels))
+            return typeof(return)(MalformedInputException("Swizzle does not match color space and auxillary channels"));
+
+        ChannelSpecification[] newChannels;
+
+        {
+            newChannels = allocator.makeArray!ChannelSpecification(numberOfIntoChannels);
+            auto current = state.channels;
+            size_t offsetIntoNewChannels;
+
+            string temporarySwizzle = swizzle;
+            while (temporarySwizzle.length > 0) {
+                ChannelSpecification channel;
+
+                foreach (c; current) {
+                    if (!c.isAuxillary && temporarySwizzle.startsWith(c.name)) {
+                        channel = c;
+                        temporarySwizzle = temporarySwizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                foreach (c; auxillary) {
+                    if (temporarySwizzle.startsWith(c.name)) {
+                        channel = c;
+                        channel.isAuxillary = true;
+                        temporarySwizzle = temporarySwizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                foreach (c; current) {
+                    if (c.isAuxillary && temporarySwizzle.startsWith(c.name)) {
+                        channel = c;
+                        temporarySwizzle = temporarySwizzle[c.name.length .. $];
+                        goto FoundChannel;
+                    }
+                }
+
+                assert(0);
+            FoundChannel:
+                // check that all channels are only in newChannels once
+                foreach (nc; newChannels[0 .. offsetIntoNewChannels]) {
+                    if (nc.name == channel.name) {
+                        allocator.dispose(newChannels);
+                        return typeof(return)(MalformedInputException("Multiple channels with same name in swizzle"));
+                    }
+                }
+
+                newChannels[offsetIntoNewChannels] = channel;
+                offsetIntoNewChannels++;
+            }
+
+            assert(offsetIntoNewChannels == numberOfIntoChannels);
+
+            // check that all !isAuxillary channels in current are in swizzle
+            foreach (c; current) {
+                if (c.name.length == 0)
+                    assert(0);
+
+                if (c.isAuxillary)
+                    continue;
+
+                size_t found;
+
+                foreach (nc; newChannels) {
+                    if (nc.name == c.name)
+                        found++;
+                }
+
+                if (found != 1) {
+                    allocator.dispose(newChannels);
+                    return typeof(return)(MalformedInputException("Missing colorspace channels from swizzle"));
+                }
+            }
+        }
+
+        ColorSpace ret;
+
+        {
+            ret = ColorSpace.allocate(allocator, state.length).construct;
+
+            static foreach (i; 3 .. State.tupleof.length)
+                ret.state.tupleof[i] = state.tupleof[i];
+
+            state.copyModelFromTo(state, ret.state);
+            ret.state.channels = Slice!ChannelSpecification(newChannels, allocator);
+        }
+
+        return typeof(return)(ret);
+    }
+
     struct State {
         private {
             shared(int) refCount = 1;
@@ -133,6 +302,7 @@ struct ColorSpace {
 
         string name;
         Slice!ChannelSpecification channels;
+        void function(scope const State* copyFrom, scope State* copyTo) copyModelFromTo;
         double function(double, scope const State*) gammaApply;
         double function(double, scope const State*) gammaUnapply;
         Result!CIEXYZSample function(scope void[] input, scope const State*) toXYZ;
@@ -183,6 +353,8 @@ struct ChannelSpecification {
     bool clampMinimum, clampMaximum;
     ///
     bool wrapAroundMinimum, wrapAroundMaximum;
+
+    private bool isAuxillary;
 
 @safe nothrow pure @nogc const:
 
@@ -350,6 +522,12 @@ struct ChannelSpecification {
             else
                 handle!ulong;
         }
+    }
+
+    /// Will advance input value
+    void storeDefaultSample(scope ref void[] output) {
+        size_t advance = fillDefault(output);
+        output = output[advance .. $];
     }
 }
 

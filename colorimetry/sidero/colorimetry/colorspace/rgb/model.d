@@ -16,6 +16,13 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
     ColorSpace.State* state = ColorSpace.allocate(allocator, RGBModel!Gamma.sizeof);
     state.name = "rgb";
 
+    state.copyModelFromTo = (from, to) @trusted {
+        RGBModel!Gamma* modelFrom = cast(RGBModel!Gamma*)from.getExtraSpace().ptr;
+        RGBModel!Gamma* modelTo = cast(RGBModel!Gamma*)to.getExtraSpace().ptr;
+
+        *modelTo = *modelFrom;
+    };
+
     static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
         state.gammaApply = (double input, scope const ColorSpace.State* state) @trusted {
             RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace().ptr;
@@ -29,29 +36,64 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
     }
 
     RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace().ptr;
-    *model = RGBModel!Gamma(channelBitCount, isFloat, whitePoint, primaryChromacity, gamma, allocator);
+    *model = RGBModel!Gamma(whitePoint, primaryChromacity, gamma, allocator);
 
-    state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) @trusted {
+    {
+        ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
+        channels[0].bits = channelBitCount;
+        channels[0].isSigned = false;
+        channels[0].isWhole = !isFloat;
+
+        channels[0].minimum = 0;
+        channels[0].maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
+        channels[0].clampMinimum = true;
+        channels[0].clampMaximum = true;
+
+        channels[1] = channels[0];
+        channels[2] = channels[0];
+
+        channels[0].name = model.ChannelR;
+        channels[1].name = model.ChannelG;
+        channels[2].name = model.ChannelB;
+
+        state.channels = Slice!ChannelSpecification(channels, allocator);
+        model.sampleSize = channels[0].numberOfBytes * 3;
+    }
+
+    state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
         if (input.length != model.sampleSize)
             return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
         Vec3d sample;
 
-        auto channels = model.channels;
-        foreach (i, channel; channels) {
-            sample[i] = channel.extractSample01(input);
+        auto channels = (cast(ColorSpace.State*)state).channels;
+        foreach (channel; channels) {
+            ptrdiff_t index = -1;
+            double value = channel.extractSample01(input);
 
-            static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
-                sample[i] = model.gammaState.unapply(sample[i]);
+            if (channel.name is model.ChannelR)
+                index = 0;
+            else if (channel.name is model.ChannelG)
+                index = 1;
+            else if (channel.name is model.ChannelB)
+                index = 2;
+
+            if (index >= 0) {
+                sample[index] = value;
+
+                static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+                    sample[index] = model.gammaState.unapply(sample[index]);
+                }
             }
         }
 
         return Result!CIEXYZSample(CIEXYZSample(model.toXYZ.dotProduct(sample), model.whitePoint));
     };
 
-    state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) @trusted {
+    state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
+
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
         if (output.length != model.sampleSize)
             return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
@@ -71,9 +113,21 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
             got[2] = model.gammaState.apply(got[2]);
         }
 
-        auto channels = model.channels;
-        foreach (i, channel; channels) {
-            channel.store01Sample(output, got[i]);
+        auto channels = (cast(ColorSpace.State*)state).channels;
+        foreach (channel; channels) {
+            ptrdiff_t index = -1;
+
+            if (channel.name is model.ChannelR)
+                index = 0;
+            else if (channel.name is model.ChannelG)
+                index = 1;
+            else if (channel.name is model.ChannelB)
+                index = 2;
+
+            if (index >= 0)
+                channel.store01Sample(output, got[index]);
+            else
+                channel.storeDefaultSample(output);
         }
 
         return ErrorResult.init;
@@ -94,38 +148,25 @@ struct RGBModel(Gamma) {
     Slice!ChannelSpecification channels;
     size_t sampleSize;
 
-    this(ubyte channelBitCount, bool isFloat, CIEChromacityCoordinate whitePoint,
-            CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma, RCAllocator allocator) {
+    static ChannelR = "r", ChannelG = "g", ChannelB = "b";
+
+    @safe nothrow @nogc:
+
+    this(CIEChromacityCoordinate whitePoint, CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma, RCAllocator allocator) {
         this.whitePoint = whitePoint;
         this.primaryChromacity = primaryChromacity;
         this.gammaState = gamma;
 
         {
-            ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
-            channels[0].bits = channelBitCount;
-            channels[0].isSigned = false;
-            channels[0].isWhole = !isFloat;
-
-            channels[0].minimum = 0;
-            channels[0].maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
-            channels[0].clampMinimum = true;
-            channels[0].clampMaximum = true;
-
-            channels[1] = channels[0];
-            channels[2] = channels[0];
-
-            channels[0].name = "r";
-            channels[1].name = "g";
-            channels[2].name = "b";
-
-            this.channels = Slice!ChannelSpecification(channels, allocator);
-            sampleSize = channels[0].numberOfBytes * 3;
-        }
-
-        {
             import sidero.colorimetry.colorspace.rgb.chromaticadaption;
+
             toXYZ = matrixForChromaticAdaptionRGBToXYZ(primaryChromacity, whitePoint, whitePoint, ScalingMethod.init);
             fromXYZ = toXYZ.inverse;
         }
+    }
+
+    this(scope ref RGBModel other) scope {
+        static foreach(i; 0 .. RGBModel.tupleof.length)
+            this.tupleof[i] = other.tupleof[i];
     }
 }
