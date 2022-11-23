@@ -108,14 +108,14 @@ struct ColorSpace {
         return state.gammaUnapply(input, state);
     }
 
-    /// Gamma will be automatically applied
+    /// Gamma will be automatically applied, does not clamp
     Result!CIEXYZSample toXYZ(scope void[] input) scope const {
         if (state is null || state.toXYZ is null)
             return typeof(return)(NullPointerException("toXYZ is not implemented"));
         return state.toXYZ(input, state);
     }
 
-    /// Gamma will be automatically removed
+    /// Gamma will be automatically removed, does not clamp
     ErrorResult fromXYZ(scope void[] output, scope CIEXYZSample input) scope const {
         if (state is null || state.fromXYZ is null)
             return typeof(return)(NullPointerException("fromXYZ is not implemented"));

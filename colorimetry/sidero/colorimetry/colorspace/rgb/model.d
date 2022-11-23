@@ -57,19 +57,19 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         channels[2].name = model.ChannelB;
 
         state.channels = Slice!ChannelSpecification(channels, allocator);
-        model.sampleSize = channels[0].numberOfBytes * 3;
     }
 
     state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
-        if (input.length != model.sampleSize)
-            return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
-
         Vec3d sample;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
         foreach (channel; channels) {
             ptrdiff_t index = -1;
+
+            if (input.length < channel.numberOfBytes)
+                return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
+
             double value = channel.extractSample01(input);
 
             if (channel.name is model.ChannelR)
@@ -95,9 +95,6 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
-        if (output.length != model.sampleSize)
-            return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
-
         Mat3x3d conversionMatrix = model.fromXYZ;
 
         if (model.whitePoint.asXYZ != input.whitePoint.asXYZ) {
@@ -124,6 +121,9 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
             else if (channel.name is model.ChannelB)
                 index = 2;
 
+            if (output.length < channel.numberOfBytes)
+                return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
+
             if (index >= 0)
                 channel.store01Sample(output, got[index]);
             else
@@ -133,7 +133,6 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         return ErrorResult.init;
     };
 
-    state.channels = model.channels;
     return state.construct();
 }
 
@@ -145,8 +144,6 @@ struct RGBModel(Gamma) {
     Gamma gammaState;
 
     Mat3x3d toXYZ, fromXYZ;
-    Slice!ChannelSpecification channels;
-    size_t sampleSize;
 
     static ChannelR = "r", ChannelG = "g", ChannelB = "b";
 
@@ -165,7 +162,7 @@ struct RGBModel(Gamma) {
         }
     }
 
-    this(scope ref RGBModel other) scope {
+    this(scope ref RGBModel other) scope @trusted {
         static foreach(i; 0 .. RGBModel.tupleof.length)
             this.tupleof[i] = other.tupleof[i];
     }
