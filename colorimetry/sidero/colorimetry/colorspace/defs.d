@@ -57,7 +57,7 @@ struct ColorSpace {
 
 @safe nothrow @nogc:
 
-    this(ref ColorSpace other) scope {
+    this(scope ref ColorSpace other) scope @trusted {
         this.state = other.state;
 
         if (state !is null)
@@ -88,10 +88,10 @@ struct ColorSpace {
     }
 
     ///
-    Slice!ChannelSpecification channels() scope {
+    Slice!ChannelSpecification channels() scope const @trusted {
         if (state is null)
             return typeof(return).init;
-        return state.channels;
+        return (cast(ColorSpace.State*)state).channels;
     }
 
     /// You may not need to call this, gamma is done automatically during conversion
@@ -123,7 +123,7 @@ struct ColorSpace {
     }
 
     /// Adds auxiliary channels and implements swizzling
-    Result!ColorSpace withChannels(string swizzle,
+    Result!ColorSpace withChannels(scope string swizzle,
             scope Slice!ChannelSpecification auxillary = Slice!ChannelSpecification.init, RCAllocator allocator = RCAllocator.init) scope {
         import sidero.base.algorithm : startsWith;
 
@@ -289,6 +289,46 @@ struct ColorSpace {
         }
 
         return typeof(return)(ret);
+    }
+
+    ///
+    int compareSamples(scope const(void)[] input1, scope const(void)[] input2) scope const {
+        import sidero.base.math.utils : isClose;
+
+        auto channels = this.channels;
+
+        foreach (channel; channels) {
+            auto nob = channel.numberOfBytes;
+
+            if (input1.length < nob)
+                return input1.length < input2.length ? -1 : 0;
+
+            double sample1 = channel.extractSample01(input1), sample2 = channel.extractSample01(input2);
+
+            if (!isClose(sample1, sample2)) {
+                if (sample1 < sample2)
+                    return -1;
+                else if (sample1 > sample2)
+                    return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    ///
+    bool opEquals(scope const ColorSpace other) scope const {
+        return this.name == other.name && this.channels == other.channels;
+    }
+
+    ///
+    int opCmp(scope const ColorSpace other) scope const {
+        if (this.name < other.name)
+            return -1;
+        else if (this.name > other.name)
+            return 1;
+        else
+            return this.channels.opCmp(other.channels);
     }
 
     struct State {
@@ -480,6 +520,14 @@ struct ChannelSpecification {
                 handle!ulong;
         }
 
+        return ret;
+    }
+
+    /// Ditto
+    double extractSample01(scope ref const(void)[] buffer) scope @trusted {
+        void[] temp = cast(void[])buffer;
+        double ret = extractSample01(temp);
+        buffer = temp;
         return ret;
     }
 
