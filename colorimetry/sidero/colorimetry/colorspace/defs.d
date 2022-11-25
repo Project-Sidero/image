@@ -541,6 +541,7 @@ struct ChannelSpecification {
 
             input *= maximum - minimum;
             input += minimum;
+            this.clampSample(input);
             *v = cast(T)input;
 
             output = output[T.sizeof .. $];
@@ -573,9 +574,52 @@ struct ChannelSpecification {
     }
 
     /// Will advance input value
-    void storeDefaultSample(scope ref void[] output) {
+    void storeDefaultSample(scope ref void[] output) scope {
         size_t advance = fillDefault(output);
         output = output[advance .. $];
+    }
+
+    /// Should already be adjusted for min & range
+    void clampSample(scope ref double value) scope {
+        import std.math : isNaN, isInfinity;
+
+        static bool isInfinite(T)(T v) @safe nothrow @nogc {
+            static if (is(T == float) || is(T == double))
+                return isInfinity(v);
+            else
+                return false;
+        }
+
+        static bool isNAN(T)(T v) @safe nothrow @nogc {
+            static if (is(T == float) || is(T == double))
+                return isNaN(v);
+            else
+                return false;
+        }
+
+        if (this.clampMinimum) {
+            if (value < this.minimum) {
+                if (this.wrapAroundMinimum)
+                    value = this.maximum - value;
+                else
+                    value = this.minimum;
+            } else if (isInfinite(value) && value < 0)
+                value = this.maximum;
+        }
+
+        if (this.clampMaximum) {
+            if (value > this.maximum) {
+                if (this.wrapAroundMaximum)
+                    value = this.minimum + (value - this.maximum);
+                else
+                    value = this.maximum;
+            } else if (isInfinite(value) && value > 0)
+                value = this.maximum;
+        }
+
+        if (!this.clampMinimum && !this.clampMaximum)
+            if (isNAN(value) || isInfinite(value))
+                value = 0;
     }
 }
 
