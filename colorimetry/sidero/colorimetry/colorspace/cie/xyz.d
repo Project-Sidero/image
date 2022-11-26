@@ -9,11 +9,12 @@ import sidero.base.errors;
 
 ///
 ColorSpace cieXYZ(CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
+    import sidero.base.text;
     if (allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, XYZModel.sizeof);
-    state.name = "cie xyz";
+    state.name = format("cieXYZ[%sx%s]", whitePoint.x, whitePoint.y).asReadOnly;
 
     state.copyModelFromTo = (from, to) @trusted {
         XYZModel* modelFrom = cast(XYZModel*)from.getExtraSpace().ptr;

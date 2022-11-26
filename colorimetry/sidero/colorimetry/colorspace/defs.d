@@ -3,6 +3,7 @@ import sidero.base.allocators;
 import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
 import sidero.base.math.linear_algebra : Vec3d;
+import sidero.base.text;
 
 @safe nothrow @nogc:
 
@@ -81,10 +82,10 @@ struct ColorSpace {
     alias toString = name;
 
     ///
-    string name() scope const {
+    String_UTF8 name() scope const @trusted {
         if (state is null)
-            return null;
-        return state.name;
+            return String_UTF8.init;
+        return (cast(ColorSpace.State*)state).name;
     }
 
     ///
@@ -340,7 +341,7 @@ struct ColorSpace {
 
     @safe nothrow @nogc:
 
-        string name;
+        String_UTF8 name;
         Slice!ChannelSpecification channels;
         void function(scope const State* copyFrom, scope State* copyTo) copyModelFromTo;
         double function(double, scope const State*) gammaApply;

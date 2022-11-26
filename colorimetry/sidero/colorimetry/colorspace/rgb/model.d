@@ -4,17 +4,26 @@ import sidero.base.containers.readonlyslice;
 import sidero.base.allocators;
 import sidero.base.math.linear_algebra;
 import sidero.base.errors;
+import sidero.base.text;
 
 @safe nothrow @nogc:
 
 ///
 ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChromacityCoordinate whitePoint,
-        CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init) @trusted {
+        CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init,
+        String_UTF8 name = String_UTF8.init) @trusted {
     if (allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, RGBModel!Gamma.sizeof);
-    state.name = "rgb";
+
+    if (name.isNull) {
+        state.name = format("rgb_%s%s[%sx%s][r:%sx%s, g:%sx%s, b:%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+                whitePoint.x, whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
+                primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
+    } else {
+        state.name = name;
+    }
 
     state.copyModelFromTo = (from, to) @trusted {
         RGBModel!Gamma* modelFrom = cast(RGBModel!Gamma*)from.getExtraSpace().ptr;
@@ -147,7 +156,7 @@ struct RGBModel(Gamma) {
 
     static ChannelR = "r", ChannelG = "g", ChannelB = "b";
 
-    @safe nothrow @nogc:
+@safe nothrow @nogc:
 
     this(CIEChromacityCoordinate whitePoint, CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma, RCAllocator allocator) {
         this.whitePoint = whitePoint;
@@ -163,7 +172,7 @@ struct RGBModel(Gamma) {
     }
 
     this(scope ref RGBModel other) scope @trusted {
-        static foreach(i; 0 .. RGBModel.tupleof.length)
+        static foreach (i; 0 .. RGBModel.tupleof.length)
             this.tupleof[i] = other.tupleof[i];
     }
 }

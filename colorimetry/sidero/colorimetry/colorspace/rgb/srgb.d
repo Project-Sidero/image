@@ -3,6 +3,7 @@ import sidero.colorimetry.colorspace.rgb.model;
 import sidero.colorimetry.colorspace.defs;
 import sidero.colorimetry.illuminants;
 import sidero.base.errors;
+import sidero.base.allocators;
 
 @safe nothrow @nogc:
 
@@ -13,12 +14,21 @@ static immutable CIEChromacityCoordinate[3] sRGBChromacities = [
 
 ///
 ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear, bool approxGamma = false) {
-    if (isLinear)
-        return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities);
-    else if (approxGamma)
-        return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaPower(2.2));
-    else
-        return rgb!sRGBGamma(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities);
+    import sidero.base.text;
+
+    if (isLinear) {
+        auto gamma = GammaNone.init;
+        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaNone.init, RCAllocator.init, name);
+    } else if (approxGamma) {
+        auto gamma = GammaPower(2.2);
+        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
+    } else {
+        auto gamma = sRGBGamma.init;
+        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        return rgb!sRGBGamma(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
+    }
 }
 
 ///
