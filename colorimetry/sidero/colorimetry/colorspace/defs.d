@@ -317,6 +317,9 @@ struct ColorSpace {
         return 0;
     }
 
+    // TODO: toString, tell us the channel names
+    // TODO: toPrettyString, tell us about the channels
+
     ///
     bool opEquals(scope const ColorSpace other) scope const {
         return this.name == other.name && this.channels == other.channels;

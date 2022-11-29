@@ -110,7 +110,6 @@ ColorSpace cieXYZ(CIEChromacityCoordinate whitePoint, RCAllocator allocator = RC
         return ErrorResult.init;
     };
 
-    state.channels = model.channels;
     return state.construct();
 }
 
@@ -118,7 +117,6 @@ private:
 
 struct XYZModel {
     CIEChromacityCoordinate whitePoint;
-    Slice!ChannelSpecification channels;
     static ChannelX = "x", ChannelY = "y", ChannelZ = "z";
 
 @safe nothrow @nogc:

@@ -37,6 +37,43 @@ ColorSpace sRGB(ubyte channelBitCount, bool isFloat, double gammaPowerFactor) {
 }
 
 ///
+unittest {
+    import sidero.colorimetry.pixel;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.math.linear_algebra;
+
+    ColorSpace colorSpace = sRGB(32, true, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
+    Pixel pixel = Pixel(colorSpace);
+
+    auto channel = pixel.channel!float("r");
+    assert(channel);
+    channel = 0.8;
+
+    channel = pixel.channel!float("g");
+    assert(channel);
+    channel = 0.85;
+
+    channel = pixel.channel!float("b");
+    assert(channel);
+    channel = 0.9;
+
+    auto got = pixel.convertTo(asColorSpace);
+    assert(got);
+
+    channel = got.channel!float("x");
+    assert(channel);
+    channel = 0.796299;
+
+    channel = got.channel!float("y");
+    assert(channel);
+    channel = 0.842975;
+
+    channel = got.channel!float("z");
+    assert(channel);
+    channel = 0.972054;
+}
+
+///
 struct sRGBGamma {
 @safe nothrow @nogc:
 

@@ -77,7 +77,7 @@ struct Pixel {
         {
             void[] temp = this.data;
 
-            foreach(channel; this._colorSpace.channels) {
+            foreach (channel; this._colorSpace.channels) {
                 channel.storeDefaultSample(temp);
             }
         }
@@ -161,6 +161,57 @@ struct Pixel {
                 destChannel.store01Sample(tempOutput, value);
             else
                 destChannel.storeDefaultSample(tempOutput);
+        }
+
+        return typeof(return)(ret);
+    }
+
+    ///
+    PixelReference convertTo(ColorSpace newColorSpace, RCAllocator allocator = RCAllocator.init) @trusted {
+        if (isNull)
+            return typeof(return)(NullPointerException);
+
+        Pixel ret = Pixel(newColorSpace, allocator);
+
+        {
+            auto asXYZ = _colorSpace.toXYZ(data);
+            if (!asXYZ)
+                return typeof(return)(asXYZ.error);
+
+            auto result = newColorSpace.fromXYZ(ret.data, asXYZ.get);
+            if (!result)
+                return typeof(return)(result.error);
+        }
+
+        {
+            void[] into = ret.data, from = this.data;
+            auto intoChannels = newColorSpace.channels, fromChannels = _colorSpace.channels;
+
+            foreach (fromChannel; fromChannels) {
+                size_t numberOfBytes = fromChannel.numberOfBytes;
+                bool handled;
+
+                {
+                    auto tempChannels = intoChannels;
+                    void[] tempInto = into;
+
+                    foreach (intoChannel; tempChannels) {
+                        if (fromChannel.name == intoChannel.name) {
+                            double got = fromChannel.extractSample01(from);
+                            intoChannel.store01Sample(tempInto, got);
+                            handled = true;
+                            break;
+                        } else {
+                            size_t numberOfBytes2 = intoChannel.numberOfBytes;
+                            tempInto = tempInto[numberOfBytes2 .. $];
+                        }
+                    }
+
+                }
+
+                if (!handled)
+                    from = from[numberOfBytes .. $];
+            }
         }
 
         return typeof(return)(ret);
