@@ -8,7 +8,7 @@ import sidero.base.errors;
 @safe nothrow @nogc:
 
 ///
-ColorSpace cieXYZ(CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
+ColorSpace cieXYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.text;
     if (allocator.isNull)
         allocator = globalAllocator();
@@ -28,7 +28,7 @@ ColorSpace cieXYZ(CIEChromacityCoordinate whitePoint, RCAllocator allocator = RC
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
-        channels[0].bits = 32;
+        channels[0].bits = channelBitCount;
         channels[0].isSigned = false;
         channels[0].isWhole = false;
 

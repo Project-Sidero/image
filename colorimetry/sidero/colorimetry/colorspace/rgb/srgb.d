@@ -13,26 +13,140 @@ static immutable CIEChromacityCoordinate[3] sRGBChromacities = [
 ];
 
 ///
-ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear, bool approxGamma = false) {
+ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false, bool approxGamma = false) {
     import sidero.base.text;
 
     if (isLinear) {
         auto gamma = GammaNone.init;
-        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaNone.init, RCAllocator.init, name);
     } else if (approxGamma) {
         auto gamma = GammaPower(2.2);
-        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
     } else {
         auto gamma = sRGBGamma.init;
-        auto name = format("sRGB_%s%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!sRGBGamma(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
     }
 }
 
 ///
-ColorSpace sRGB(ubyte channelBitCount, bool isFloat, double gammaPowerFactor) {
+unittest {
+    import sidero.colorimetry.pixel;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.math.linear_algebra;
+
+    // linear
+    ColorSpace colorSpace = sRGB(32, true, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    Pixel pixel = Pixel(colorSpace);
+
+    auto channel1 = pixel.channel!float("r");
+    assert(channel1);
+    channel1 = 0.8;
+
+    channel1 = pixel.channel!float("g");
+    assert(channel1);
+    channel1 = 0.85;
+
+    channel1 = pixel.channel!float("b");
+    assert(channel1);
+    channel1 = 0.9;
+
+    auto got = pixel.convertTo(asColorSpace);
+    assert(got);
+
+    auto channel2 = got.channel!float("x");
+    assert(channel2);
+    assert(channel2 == 0.796299);
+
+    channel2 = got.channel!float("y");
+    assert(channel2);
+    assert(channel2 == 0.842975);
+
+    channel2 = got.channel!float("z");
+    assert(channel2);
+    assert(channel2 == 0.972054);
+}
+
+///
+unittest {
+    import sidero.colorimetry.pixel;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.math.linear_algebra;
+
+    // approx power
+    ColorSpace colorSpace = sRGB(32, true, false, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    Pixel pixel = Pixel(colorSpace);
+
+    auto channel1 = pixel.channel!float("r");
+    assert(channel1);
+    channel1 = 0.8;
+
+    channel1 = pixel.channel!float("g");
+    assert(channel1);
+    channel1 = 0.85;
+
+    channel1 = pixel.channel!float("b");
+    assert(channel1);
+    channel1 = 0.9;
+
+    auto got = pixel.convertTo(asColorSpace);
+    assert(got);
+
+    auto channel2 = got.channel!float("x");
+    assert(channel2);
+    assert(channel2 == 0.645644);
+
+    channel2 = got.channel!float("y");
+    assert(channel2);
+    assert(channel2 == 0.687585);
+
+    channel2 = got.channel!float("z");
+    assert(channel2);
+    assert(channel2 == 0.848892);
+}
+
+///
+unittest {
+    import sidero.colorimetry.pixel;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.math.linear_algebra;
+
+    // sRGB gamma
+    ColorSpace colorSpace = sRGB(32, true, false, false), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    Pixel pixel = Pixel(colorSpace);
+
+    auto channel1 = pixel.channel!float("r");
+    assert(channel1);
+    channel1 = 0.8;
+
+    channel1 = pixel.channel!float("g");
+    assert(channel1);
+    channel1 = 0.85;
+
+    channel1 = pixel.channel!float("b");
+    assert(channel1);
+    channel1 = 0.9;
+
+    auto got = pixel.convertTo(asColorSpace);
+    assert(got);
+
+    auto channel2 = got.channel!float("x");
+    assert(channel2);
+    assert(channel2 == 0.638599);
+
+    channel2 = got.channel!float("y");
+    assert(channel2);
+    assert(channel2 == 0.680185);
+
+    channel2 = got.channel!float("z");
+    assert(channel2);
+    assert(channel2 == 0.842445);
+}
+
+///
+ColorSpace sRGBPower(ubyte channelBitCount, bool isFloat, double gammaPowerFactor) {
     return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaPower(gammaPowerFactor));
 }
 
@@ -42,7 +156,7 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = sRGB(8, false, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGBPower(8, false, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     auto channel1 = pixel.channel!ubyte("r");
@@ -79,7 +193,7 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = sRGB(32, true, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGBPower(32, true, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     auto channel1 = pixel.channel!float("r");

@@ -640,11 +640,11 @@ struct GammaPower {
 
     ///
     double apply(double input) {
-        return input ^^ factor;
+        return input ^^ (1f / factor);
     }
 
     ///
     double unapply(double input) {
-        return input ^^ (1f / factor);
+        return input ^^ factor;
     }
 }
