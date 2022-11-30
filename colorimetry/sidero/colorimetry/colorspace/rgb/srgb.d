@@ -42,35 +42,72 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = sRGB(32, true, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGB(8, false, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel = pixel.channel!float("r");
-    assert(channel);
-    channel = 0.8;
+    auto channel1 = pixel.channel!ubyte("r");
+    assert(channel1);
+    channel1 = 231;
 
-    channel = pixel.channel!float("g");
-    assert(channel);
-    channel = 0.85;
+    channel1 = pixel.channel!ubyte("g");
+    assert(channel1);
+    channel1 = 237;
 
-    channel = pixel.channel!float("b");
-    assert(channel);
-    channel = 0.9;
+    channel1 = pixel.channel!ubyte("b");
+    assert(channel1);
+    channel1 = 243;
 
     auto got = pixel.convertTo(asColorSpace);
     assert(got);
 
-    channel = got.channel!float("x");
-    assert(channel);
-    channel = 0.796299;
+    auto channel2 = got.channel!float("x");
+    assert(channel2);
+    assert(channel2 == 0.877919);
 
-    channel = got.channel!float("y");
-    assert(channel);
-    channel = 0.842975;
+    channel2 = got.channel!float("y");
+    assert(channel2);
+    assert(channel2 == 0.926106);
 
-    channel = got.channel!float("z");
-    assert(channel);
-    channel = 0.972054;
+    channel2 = got.channel!float("z");
+    assert(channel2);
+    assert(channel2 == 1); // actually is 1.033877 but after clamping it is 1 which is correct
+}
+
+///
+unittest {
+    import sidero.colorimetry.pixel;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.math.linear_algebra;
+
+    ColorSpace colorSpace = sRGB(32, true, 1f), asColorSpace = cieXYZ(Illuminants.D65_2Degrees);
+    Pixel pixel = Pixel(colorSpace);
+
+    auto channel1 = pixel.channel!float("r");
+    assert(channel1);
+    channel1 = 0.8;
+
+    channel1 = pixel.channel!float("g");
+    assert(channel1);
+    channel1 = 0.85;
+
+    channel1 = pixel.channel!float("b");
+    assert(channel1);
+    channel1 = 0.9;
+
+    auto got = pixel.convertTo(asColorSpace);
+    assert(got);
+
+    auto channel2 = got.channel!float("x");
+    assert(channel2);
+    assert(channel2 == 0.796299);
+
+    channel2 = got.channel!float("y");
+    assert(channel2);
+    assert(channel2 == 0.842975);
+
+    channel2 = got.channel!float("z");
+    assert(channel2);
+    assert(channel2 == 0.972054);
 }
 
 ///
