@@ -494,7 +494,7 @@ struct ChannelSpecification {
 
             ret = cast(double)*v;
             ret -= minimum;
-            ret = (maximum - minimum) / ret;
+            ret /= (maximum - minimum);
 
             buffer = buffer[T.sizeof .. $];
         }
