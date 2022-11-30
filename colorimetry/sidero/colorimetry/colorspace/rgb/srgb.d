@@ -41,32 +41,53 @@ unittest {
     ColorSpace colorSpace = sRGB(32, true, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel1 = pixel.channel!float("r");
-    assert(channel1);
-    channel1 = 0.8;
+    {
+        auto channel = pixel.channel!float("r");
+        assert(channel);
+        channel = 0.8;
 
-    channel1 = pixel.channel!float("g");
-    assert(channel1);
-    channel1 = 0.85;
+        channel = pixel.channel!float("g");
+        assert(channel);
+        channel = 0.85;
 
-    channel1 = pixel.channel!float("b");
-    assert(channel1);
-    channel1 = 0.9;
+        channel = pixel.channel!float("b");
+        assert(channel);
+        channel = 0.9;
+    }
 
-    auto got = pixel.convertTo(asColorSpace);
-    assert(got);
+    auto gotXYZ = pixel.convertTo(asColorSpace);
+    assert(gotXYZ);
 
-    auto channel2 = got.channel!float("x");
-    assert(channel2);
-    assert(channel2 == 0.796299);
+    {
+        auto channel = gotXYZ.channel!float("x");
+        assert(channel);
+        assert(channel == 0.796299);
 
-    channel2 = got.channel!float("y");
-    assert(channel2);
-    assert(channel2 == 0.842975);
+        channel = gotXYZ.channel!float("y");
+        assert(channel);
+        assert(channel == 0.842975);
 
-    channel2 = got.channel!float("z");
-    assert(channel2);
-    assert(channel2 == 0.972054);
+        channel = gotXYZ.channel!float("z");
+        assert(channel);
+        assert(channel == 0.972054);
+    }
+
+    auto gotRGB = gotXYZ.convertTo(colorSpace);
+    assert(gotRGB);
+
+    {
+        auto channel = gotRGB.channel!float("r");
+        assert(channel);
+        assert(channel == 0.8);
+
+        channel = gotRGB.channel!float("g");
+        assert(channel);
+        assert(channel == 0.85);
+
+        channel = gotRGB.channel!float("b");
+        assert(channel);
+        assert(channel == 0.9);
+    }
 }
 
 ///
@@ -79,32 +100,53 @@ unittest {
     ColorSpace colorSpace = sRGB(32, true, false, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel1 = pixel.channel!float("r");
-    assert(channel1);
-    channel1 = 0.8;
+    {
+        auto channel = pixel.channel!float("r");
+        assert(channel);
+        channel = 0.8;
 
-    channel1 = pixel.channel!float("g");
-    assert(channel1);
-    channel1 = 0.85;
+        channel = pixel.channel!float("g");
+        assert(channel);
+        channel = 0.85;
 
-    channel1 = pixel.channel!float("b");
-    assert(channel1);
-    channel1 = 0.9;
+        channel = pixel.channel!float("b");
+        assert(channel);
+        channel = 0.9;
+    }
 
-    auto got = pixel.convertTo(asColorSpace);
-    assert(got);
+    auto gotXYZ = pixel.convertTo(asColorSpace);
+    assert(gotXYZ);
 
-    auto channel2 = got.channel!float("x");
-    assert(channel2);
-    assert(channel2 == 0.645644);
+    {
+        auto channel = gotXYZ.channel!float("x");
+        assert(channel);
+        assert(channel == 0.645644);
 
-    channel2 = got.channel!float("y");
-    assert(channel2);
-    assert(channel2 == 0.687585);
+        channel = gotXYZ.channel!float("y");
+        assert(channel);
+        assert(channel == 0.687585);
 
-    channel2 = got.channel!float("z");
-    assert(channel2);
-    assert(channel2 == 0.848892);
+        channel = gotXYZ.channel!float("z");
+        assert(channel);
+        assert(channel == 0.848892);
+    }
+
+    auto gotRGB = gotXYZ.convertTo(colorSpace);
+    assert(gotRGB);
+
+    {
+        auto channel = gotRGB.channel!float("r");
+        assert(channel);
+        assert(channel == 0.8);
+
+        channel = gotRGB.channel!float("g");
+        assert(channel);
+        assert(channel == 0.85);
+
+        channel = gotRGB.channel!float("b");
+        assert(channel);
+        assert(channel == 0.9);
+    }
 }
 
 ///
@@ -117,32 +159,53 @@ unittest {
     ColorSpace colorSpace = sRGB(32, true, false, false), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel1 = pixel.channel!float("r");
-    assert(channel1);
-    channel1 = 0.8;
+    {
+        auto channel = pixel.channel!float("r");
+        assert(channel);
+        channel = 0.8;
 
-    channel1 = pixel.channel!float("g");
-    assert(channel1);
-    channel1 = 0.85;
+        channel = pixel.channel!float("g");
+        assert(channel);
+        channel = 0.85;
 
-    channel1 = pixel.channel!float("b");
-    assert(channel1);
-    channel1 = 0.9;
+        channel = pixel.channel!float("b");
+        assert(channel);
+        channel = 0.9;
+    }
 
-    auto got = pixel.convertTo(asColorSpace);
-    assert(got);
+    auto gotXYZ = pixel.convertTo(asColorSpace);
+    assert(gotXYZ);
 
-    auto channel2 = got.channel!float("x");
-    assert(channel2);
-    assert(channel2 == 0.638599);
+    {
+        auto channel = gotXYZ.channel!float("x");
+        assert(channel);
+        assert(channel == 0.638599);
 
-    channel2 = got.channel!float("y");
-    assert(channel2);
-    assert(channel2 == 0.680185);
+        channel = gotXYZ.channel!float("y");
+        assert(channel);
+        assert(channel == 0.680185);
 
-    channel2 = got.channel!float("z");
-    assert(channel2);
-    assert(channel2 == 0.842445);
+        channel = gotXYZ.channel!float("z");
+        assert(channel);
+        assert(channel == 0.842445);
+    }
+
+    auto gotRGB = gotXYZ.convertTo(colorSpace);
+    assert(gotRGB);
+
+    {
+        auto channel = gotRGB.channel!float("r");
+        assert(channel);
+        assert(channel == 0.8);
+
+        channel = gotRGB.channel!float("g");
+        assert(channel);
+        assert(channel == 0.85);
+
+        channel = gotRGB.channel!float("b");
+        assert(channel);
+        assert(channel == 0.9);
+    }
 }
 
 ///
@@ -159,32 +222,53 @@ unittest {
     ColorSpace colorSpace = sRGBPower(8, false, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel1 = pixel.channel!ubyte("r");
-    assert(channel1);
-    channel1 = 231;
+    {
+        auto channel = pixel.channel!ubyte("r");
+        assert(channel);
+        channel = 231;
 
-    channel1 = pixel.channel!ubyte("g");
-    assert(channel1);
-    channel1 = 237;
+        channel = pixel.channel!ubyte("g");
+        assert(channel);
+        channel = 237;
 
-    channel1 = pixel.channel!ubyte("b");
-    assert(channel1);
-    channel1 = 243;
+        channel = pixel.channel!ubyte("b");
+        assert(channel);
+        channel = 243;
+    }
 
-    auto got = pixel.convertTo(asColorSpace);
-    assert(got);
+    auto gotXYZ = pixel.convertTo(asColorSpace);
+    assert(gotXYZ);
 
-    auto channel2 = got.channel!float("x");
-    assert(channel2);
-    assert(channel2 == 0.877919);
+    {
+        auto channel = gotXYZ.channel!float("x");
+        assert(channel);
+        assert(channel == 0.877919);
 
-    channel2 = got.channel!float("y");
-    assert(channel2);
-    assert(channel2 == 0.926106);
+        channel = gotXYZ.channel!float("y");
+        assert(channel);
+        assert(channel == 0.926106);
 
-    channel2 = got.channel!float("z");
-    assert(channel2);
-    assert(channel2 == 1); // actually is 1.033877 but after clamping it is 1 which is correct
+        channel = gotXYZ.channel!float("z");
+        assert(channel);
+        assert(channel == 1); // actually is 1.033877 but after clamping it is 1 which is correct
+    }
+
+    auto gotRGB = gotXYZ.convertTo(colorSpace);
+    assert(gotRGB);
+
+    {
+        auto channel = gotRGB.channel!ubyte("r");
+        assert(channel);
+        assert(channel == 235);
+
+        channel = gotRGB.channel!ubyte("g");
+        assert(channel);
+        assert(channel == 236);
+
+        channel = gotRGB.channel!ubyte("b");
+        assert(channel);
+        assert(channel == 233);
+    }
 }
 
 ///
@@ -196,32 +280,53 @@ unittest {
     ColorSpace colorSpace = sRGBPower(32, true, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
-    auto channel1 = pixel.channel!float("r");
-    assert(channel1);
-    channel1 = 0.8;
+    {
+        auto channel = pixel.channel!float("r");
+        assert(channel);
+        channel = 0.8;
 
-    channel1 = pixel.channel!float("g");
-    assert(channel1);
-    channel1 = 0.85;
+        channel = pixel.channel!float("g");
+        assert(channel);
+        channel = 0.85;
 
-    channel1 = pixel.channel!float("b");
-    assert(channel1);
-    channel1 = 0.9;
+        channel = pixel.channel!float("b");
+        assert(channel);
+        channel = 0.9;
+    }
 
-    auto got = pixel.convertTo(asColorSpace);
-    assert(got);
+    auto gotXYZ = pixel.convertTo(asColorSpace);
+    assert(gotXYZ);
 
-    auto channel2 = got.channel!float("x");
-    assert(channel2);
-    assert(channel2 == 0.796299);
+    {
+        auto channel = gotXYZ.channel!float("x");
+        assert(channel);
+        assert(channel == 0.796299);
 
-    channel2 = got.channel!float("y");
-    assert(channel2);
-    assert(channel2 == 0.842975);
+        channel = gotXYZ.channel!float("y");
+        assert(channel);
+        assert(channel == 0.842975);
 
-    channel2 = got.channel!float("z");
-    assert(channel2);
-    assert(channel2 == 0.972054);
+        channel = gotXYZ.channel!float("z");
+        assert(channel);
+        assert(channel == 0.972054);
+    }
+
+    auto gotRGB = gotXYZ.convertTo(colorSpace);
+    assert(gotRGB);
+
+    {
+        auto channel = gotRGB.channel!float("r");
+        assert(channel);
+        assert(channel == 0.8);
+
+        channel = gotRGB.channel!float("g");
+        assert(channel);
+        assert(channel == 0.85);
+
+        channel = gotRGB.channel!float("b");
+        assert(channel);
+        assert(channel == 0.9);
+    }
 }
 
 ///
