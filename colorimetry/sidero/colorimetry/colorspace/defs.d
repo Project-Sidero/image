@@ -368,7 +368,7 @@ struct ColorSpace {
     }
 
     static State* allocate(RCAllocator allocator, size_t length) @trusted {
-        void[] data = allocator.makeArray!void(State.sizeof + length);
+        ubyte[] data = allocator.makeArray!ubyte(State.sizeof + length);
 
         State* ret = cast(State*)data.ptr;
         *ret = State.init;

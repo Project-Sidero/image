@@ -19,7 +19,7 @@ struct Pixel {
 
         static struct Internal {
             RCAllocator allocator;
-            shared int refCount;
+            shared ptrdiff_t refCount;
             void[] data;
 
         @safe nothrow @nogc:
