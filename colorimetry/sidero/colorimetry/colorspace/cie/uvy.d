@@ -1,4 +1,7 @@
-module sidero.colorimetry.colorspace.cie.xyy;
+/**
+CIE 1976 u'v' for UCS chromacity diagram
+*/
+module sidero.colorimetry.colorspace.cie.uvy;
 import sidero.colorimetry.colorspace.defs;
 import sidero.colorimetry.illuminants;
 import sidero.base.containers.readonlyslice;
@@ -9,14 +12,14 @@ import sidero.base.errors;
 @safe nothrow @nogc:
 
 ///
-ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.init) @trusted {
+ColorSpace cie_uvY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.text;
 
     if (allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_xyY").asReadOnly;
+    state.name = format("cie_u'v'Y").asReadOnly;
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
@@ -32,8 +35,8 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         channels[1] = channels[0];
         channels[2] = channels[0];
 
-        channels[0].name = ChannelX;
-        channels[1].name = ChannelY;
+        channels[0].name = ChannelU;
+        channels[1].name = ChannelV;
         channels[2].name = ChannelY2;
 
         state.channels = Slice!ChannelSpecification(channels, allocator);
@@ -53,9 +56,9 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
             const value = channel.extractSample01(input);
 
-            if (channel.name is ChannelX)
+            if (channel.name is ChannelU)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if (channel.name is ChannelV)
                 index = 1;
             else if (channel.name is ChannelY2)
                 index = 2;
@@ -65,7 +68,9 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
             }
         }
 
-        Vec3d result = Vec3d((got[0] * got[2]) / got[1], got[2], ((1f - got[0] - got[1]) * got[2]) / got[1]);
+        double diver = 4f * cast(double)got[1];
+
+        Vec3d result = Vec3d((9 * got[0] * got[2]) / diver, got[2], got[2] * (12 - (3 * got[0]) - (20 * got[1])) / diver);
         return Result!CIEXYZSample(CIEXYZSample(result, Illuminants.E_2Degrees));
     };
 
@@ -79,15 +84,16 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
             got = adapt.dotProduct(got);
         }
 
-        Vec3d result = Vec3d(got[0] / (got[0] + got[1] + got[2]), got[1] / (got[0] + got[1] + got[2]), got[1]);
+        const weighted = got[0] + (15 * got[1]) + (3 * got[2]);
+        Vec3d result = Vec3d((4 * got[0]) / weighted, (9 * got[1]) / weighted, got[1]);
 
         auto channels = (cast(ColorSpace.State*)state).channels;
         foreach (channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is ChannelX)
+            if (channel.name is ChannelU)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if (channel.name is ChannelV)
                 index = 1;
             else if (channel.name is ChannelY2)
                 index = 2;
@@ -113,21 +119,21 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = cie_xyY(32), asColorSpace = cie_XYZ(32, Illuminants.E_2Degrees);
+    ColorSpace colorSpace = cie_uvY(32), asColorSpace = cie_XYZ(32, Illuminants.E_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!float("x");
+        auto channel = pixel.channel!float("u'");
         assert(channel);
-        channel = 0.45;
+        channel = 0.20443;
 
-        channel = pixel.channel!float("y");
+        channel = pixel.channel!float("v'");
         assert(channel);
-        channel = 0.4;
+        channel = 0.480737;
 
         channel = pixel.channel!float("Y");
         assert(channel);
-        channel = 0.15;
+        channel = 1;
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -136,34 +142,34 @@ unittest {
     {
         auto channel = gotXYZ.channel!float("x");
         assert(channel);
-        assert(channel == 0.168750);
+        assert(channel == 0.956797);
 
         channel = gotXYZ.channel!float("y");
         assert(channel);
-        assert(channel == 0.150000);
+        assert(channel == 1);
 
         channel = gotXYZ.channel!float("z");
         assert(channel);
-        assert(channel == 0.056250);
+        assert(channel == 0.921480);
     }
 
-    auto gotxyY = gotXYZ.convertTo(colorSpace);
-    assert(gotxyY);
+    auto gotuvY = gotXYZ.convertTo(colorSpace);
+    assert(gotuvY);
 
     {
-        auto channel = gotxyY.channel!float("x");
+        auto channel = gotuvY.channel!float("u'");
         assert(channel);
-        assert(channel == 0.45);
+        channel = 0.20443;
 
-        channel = gotxyY.channel!float("y");
+        channel = gotuvY.channel!float("v'");
         assert(channel);
-        assert(channel == 0.4);
+        channel = 0.480737;
 
-        channel = gotxyY.channel!float("Y");
+        channel = gotuvY.channel!float("Y");
         assert(channel);
-        assert(channel == 0.15);
+        channel = 1;
     }
 }
 
 private:
-static ChannelX = "x", ChannelY = "y", ChannelY2 = "Y";
+static ChannelU = "u'", ChannelV = "v'", ChannelY2 = "Y";
