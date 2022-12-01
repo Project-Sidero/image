@@ -34,7 +34,7 @@ unittest {
     import sidero.base.math.linear_algebra;
 
     // linear
-    ColorSpace colorSpace = adobeRGB(32, true, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = adobeRGB(32, true, true), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
@@ -93,7 +93,7 @@ unittest {
     import sidero.base.math.linear_algebra;
 
     // non-linear
-    ColorSpace colorSpace = adobeRGB(32, true, false), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = adobeRGB(32, true, false), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {

@@ -38,7 +38,7 @@ unittest {
     import sidero.base.math.linear_algebra;
 
     // linear
-    ColorSpace colorSpace = sRGB(32, true, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGB(32, true, true), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
@@ -97,7 +97,7 @@ unittest {
     import sidero.base.math.linear_algebra;
 
     // approx power
-    ColorSpace colorSpace = sRGB(32, true, false, true), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGB(32, true, false, true), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
@@ -156,7 +156,7 @@ unittest {
     import sidero.base.math.linear_algebra;
 
     // sRGB gamma
-    ColorSpace colorSpace = sRGB(32, true, false, false), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGB(32, true, false, false), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
@@ -219,7 +219,7 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = sRGBPower(8, false, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGBPower(8, false, 1f), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {
@@ -277,7 +277,7 @@ unittest {
     import sidero.colorimetry.colorspace.cie.xyz;
     import sidero.base.math.linear_algebra;
 
-    ColorSpace colorSpace = sRGBPower(32, true, 1f), asColorSpace = cieXYZ(32, Illuminants.D65_2Degrees);
+    ColorSpace colorSpace = sRGBPower(32, true, 1f), asColorSpace = cie_XYZ(32, Illuminants.D65_2Degrees);
     Pixel pixel = Pixel(colorSpace);
 
     {

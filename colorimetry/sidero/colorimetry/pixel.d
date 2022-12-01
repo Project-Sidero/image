@@ -188,29 +188,21 @@ struct Pixel {
             auto intoChannels = newColorSpace.channels, fromChannels = _colorSpace.channels;
 
             foreach (fromChannel; fromChannels) {
-                size_t numberOfBytes = fromChannel.numberOfBytes;
-                bool handled;
+                double got = fromChannel.extractSample01(from);
 
-                {
+                if (fromChannel.isAuxillary) {
                     auto tempChannels = intoChannels;
                     void[] tempInto = into;
 
                     foreach (intoChannel; tempChannels) {
                         if (fromChannel.name == intoChannel.name) {
-                            double got = fromChannel.extractSample01(from);
                             intoChannel.store01Sample(tempInto, got);
-                            handled = true;
                             break;
                         } else {
-                            size_t numberOfBytes2 = intoChannel.numberOfBytes;
-                            tempInto = tempInto[numberOfBytes2 .. $];
+                            tempInto = tempInto[intoChannel.numberOfBytes .. $];
                         }
                     }
-
                 }
-
-                if (!handled)
-                    from = from[numberOfBytes .. $];
             }
         }
 

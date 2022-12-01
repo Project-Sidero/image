@@ -285,7 +285,8 @@ struct ColorSpace {
             static foreach (i; 3 .. State.tupleof.length)
                 ret.state.tupleof[i] = state.tupleof[i];
 
-            state.copyModelFromTo(state, ret.state);
+            if (state.copyModelFromTo !is null)
+                state.copyModelFromTo(state, ret.state);
             ret.state.channels = Slice!ChannelSpecification(newChannels, allocator);
         }
 
@@ -450,7 +451,7 @@ struct ChannelSpecification {
     ///
     bool wrapAroundMinimum, wrapAroundMaximum;
 
-    private bool isAuxillary;
+    package(sidero.colorimetry) bool isAuxillary;
 
 @safe nothrow pure @nogc const:
 

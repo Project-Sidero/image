@@ -8,7 +8,7 @@ import sidero.base.errors;
 @safe nothrow @nogc:
 
 ///
-ColorSpace cieXYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
+ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.text;
     if (allocator.isNull)
         allocator = globalAllocator();
