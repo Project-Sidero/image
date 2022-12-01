@@ -317,8 +317,60 @@ struct ColorSpace {
         return 0;
     }
 
-    // TODO: toString, tell us the channel names
-    // TODO: toPrettyString, tell us about the channels
+    ///
+    String_UTF8 toString(RCAllocator allocator = globalAllocator()) @trusted {
+        StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
+        toString(ret);
+        return ret.asReadOnly;
+    }
+
+    ///
+    void toString(Sink)(scope ref Sink sink) {
+        if (this.isNull) {
+            sink ~= "null";
+            return;
+        }
+
+        sink.formattedWrite(String_ASCII("%s["), this.name);
+
+        foreach(i, channel; this.channels) {
+            if (i > 0)
+                sink ~= ", ";
+
+            sink ~= channel.name;
+        }
+
+        sink ~= "]";
+    }
+
+    ///
+    String_UTF8 toStringPretty(RCAllocator allocator = globalAllocator()) @trusted {
+        StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
+        toStringPretty(ret);
+        return ret.asReadOnly;
+    }
+
+    ///
+    void toStringPretty(Sink)(scope ref Sink sink) {
+        if (this.isNull) {
+            sink ~= "null";
+            return;
+        }
+
+        sink.formattedWrite(String_ASCII("%s["), this.name);
+
+        foreach(i, channel; this.channels) {
+            if (i > 0)
+                sink ~= ", ";
+
+            sink.formattedWrite(String_ASCII("{name: %s, type: %sbits %s %s, min: %s%s%s, max: %s%s%s}"),
+            channel.name, channel.bits, channel.isSigned ? "signed" : "unsigned", channel.isWhole ? "whole" : "float",
+            channel.minimum, channel.wrapAroundMinimum ? " wrap around" : "", channel.clampMinimum ? " clamped" : "",
+            channel.maximum, channel.wrapAroundMaximum ? " wrap around" : "", channel.clampMaximum ? " clamped" : "");
+        }
+
+        sink ~= "]";
+    }
 
     ///
     bool opEquals(scope const ColorSpace other) scope const {
