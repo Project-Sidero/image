@@ -334,7 +334,7 @@ struct ColorSpace {
 
         sink.formattedWrite(String_ASCII("%s["), this.name);
 
-        foreach(i, channel; this.channels) {
+        foreach (i, channel; this.channels) {
             if (i > 0)
                 sink ~= ", ";
 
@@ -360,14 +360,15 @@ struct ColorSpace {
 
         sink.formattedWrite(String_ASCII("%s["), this.name);
 
-        foreach(i, channel; this.channels) {
+        foreach (i, channel; this.channels) {
             if (i > 0)
                 sink ~= ", ";
 
-            sink.formattedWrite(String_ASCII("{name: %s, type: %sbits %s %s, min: %s%s%s, max: %s%s%s}"),
-            channel.name, channel.bits, channel.isSigned ? "signed" : "unsigned", channel.isWhole ? "whole" : "float",
-            channel.minimum, channel.wrapAroundMinimum ? " wrap around" : "", channel.clampMinimum ? " clamped" : "",
-            channel.maximum, channel.wrapAroundMaximum ? " wrap around" : "", channel.clampMaximum ? " clamped" : "");
+            sink.formattedWrite(String_ASCII("{name: %s, type: %sbits %s %s, min: %s%s%s, max: %s%s%s}"), channel.name,
+                    channel.bits, channel.isSigned ? "signed" : "unsigned", channel.isWhole ? "whole" : "float",
+                    channel.minimum, channel.wrapAroundMinimum ? " wrap around" : "", channel.clampMinimum ?
+                    " clamped" : "", channel.maximum, channel.wrapAroundMaximum ? " wrap around" : "", channel.clampMaximum ? " clamped"
+                    : "");
         }
 
         sink ~= "]";
@@ -546,7 +547,12 @@ struct ChannelSpecification {
             T* v = cast(T*)buffer.ptr;
 
             ret = cast(double)*v;
-            ret -= minimum;
+
+            if (minimum < 0)
+                ret += -minimum;
+            else
+                ret -= minimum;
+
             ret /= (maximum - minimum);
 
             buffer = buffer[T.sizeof .. $];
