@@ -3,10 +3,12 @@ import sidero.colorimetry.colorspace;
 import sidero.base.allocators;
 import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
+import sidero.base.text;
 
 ///
 alias PixelReference = Result!Pixel;
 
+///
 struct Pixel {
     ///
     alias RCHandle = void delegate(bool addRef, scope void* _user) @safe nothrow @nogc;
@@ -207,6 +209,62 @@ struct Pixel {
         }
 
         return typeof(return)(ret);
+    }
+
+    ///
+    String_UTF8 toString(RCAllocator allocator = globalAllocator()) @trusted {
+        StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
+        toString(ret);
+        return ret.asReadOnly;
+    }
+
+    ///
+    void toString(Sink)(scope ref Sink sink) @trusted {
+        if (this.isNull) {
+            sink ~= "null";
+            return;
+        }
+
+        auto colorSpace = this.colorSpace;
+        void[] temp = data;
+
+        foreach (i, channel; colorSpace.channels) {
+            if (i > 0)
+                sink ~= ", ";
+
+            double value = channel.extractSample01(temp);
+            sink.formattedWrite(String_ASCII("%s"), channel.sample01AsRange(value));
+        }
+    }
+
+    ///
+    String_UTF8 toStringPretty(RCAllocator allocator = globalAllocator()) @trusted {
+        StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
+        toStringPretty(ret);
+        return ret.asReadOnly;
+    }
+
+    ///
+    void toStringPretty(Sink)(scope ref Sink sink) {
+        if (this.isNull) {
+            sink ~= "null";
+            return;
+        }
+
+        auto colorSpace = this.colorSpace;
+        sink.formattedWrite(String_ASCII("%s("), colorSpace.name);
+
+        void[] temp = data;
+
+        foreach (i, channel; colorSpace.channels) {
+            if (i > 0)
+                sink ~= ", ";
+
+            double value = channel.extractSample01(temp);
+            sink.formattedWrite(String_ASCII("%s: %s"), channel.name, channel.sample01AsRange(value));
+        }
+
+        sink ~= ")";
     }
 
     ///
