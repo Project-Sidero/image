@@ -545,16 +545,7 @@ struct ChannelSpecification {
 
         void handle(T)() @trusted nothrow @nogc {
             T* v = cast(T*)buffer.ptr;
-
-            ret = cast(double)*v;
-
-            if (minimum < 0)
-                ret += -minimum;
-            else
-                ret -= minimum;
-
-            ret /= (maximum - minimum);
-
+            ret = sampleRangeAs01(cast(double)*v);
             buffer = buffer[T.sizeof .. $];
         }
 
@@ -601,12 +592,7 @@ struct ChannelSpecification {
 
         void handle(T)() @trusted nothrow @nogc {
             T* v = cast(T*)output.ptr;
-
-            input *= maximum - minimum;
-            input += minimum;
-            this.clampSample(input);
-            *v = cast(T)input;
-
+            *v = cast(T)this.sample01AsRange(input);
             output = output[T.sizeof .. $];
         }
 
@@ -683,6 +669,26 @@ struct ChannelSpecification {
         if (!this.clampMinimum && !this.clampMaximum)
             if (isNAN(value) || isInfinite(value))
                 value = 0;
+    }
+
+    /// Given value in range of specification, output it in 0 .. 1
+    double sampleRangeAs01(double input) {
+        if (minimum < 0)
+            input += -minimum;
+        else
+            input -= minimum;
+
+        input /= (maximum - minimum);
+        return input;
+    }
+
+    /// Given value in 0 .. 1, output as range in specification
+    double sample01AsRange(double input) {
+        input *= maximum - minimum;
+        input += minimum;
+
+        this.clampSample(input);
+        return input;
     }
 }
 

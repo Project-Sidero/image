@@ -68,30 +68,26 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
                 index = 2;
 
             if (index >= 0) {
-                got[index] = value;
+                got[index] = channel.sample01AsRange(value);
             }
         }
 
-        const e = 2.16 / cast(double)24389;
-        const k = 243.89 / cast(double)27;
-
-        const L = got[0] * 100;
-        const U = (got[1] - 0.5) * 200;
-        const V = (got[2] - 0.5) * 200;
-
+        const e = 216 / cast(double)24389;
+        const k = 24389 / cast(double)27;
         const whitePoint = Illuminants.E_2Degrees.asXYZ;
-        const valY = got[0] > (k * e) ? (((got[0] + 0.16) / 1.16) ^^ 3) : (got[0] / k);
+
+        const valY = got[0] > (k * e) ? (((got[0] + 16) / 116) ^^ 3) : (got[0] / k);
 
         // extract u'v'
         const u0 = (4 * whitePoint[0]) / (Vec3d(1, 15, 3) * whitePoint).sum;
         const v0 = (9 * whitePoint[1]) / (Vec3d(1, 15, 3) * whitePoint).sum;
 
-        const a0 = (52 * L) / (U + 13 * L * u0);
+        const a0 = (52 * got[0]) / (got[1] + 13 * got[0] * u0);
         const a = ((a0) - 1) / 3;
 
         const b = -5 * valY;
         const c = -1 / 3f;
-        const d = valY * (((39 * L) / (V + 13 * L * v0)) - 5);
+        const d = valY * (((39 * got[0]) / (got[2] + 13 * got[0] * v0)) - 5);
 
         const valX = (d - b) / (a - c);
         const valZ = valX * a + b;
@@ -110,8 +106,8 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
             got = adapt.dotProduct(got);
         }
 
-        const e = 2.16 / cast(double)24389;
-        const k = 243.89 / cast(double)27;
+        const e = 216 / cast(double)24389;
+        const k = 24389 / cast(double)27;
         const whitePoint = Illuminants.E_2Degrees.asXYZ;
 
         const yr = got[1] / whitePoint[1];
@@ -124,8 +120,8 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const ur = (4 * whitePoint[0]) / uvr;
         const vr = (9 * whitePoint[1]) / uvr;
 
-        const valL = yr > e ? (1.16 * (yr ^^ (1 / 3f)) - 0.16) : (k * yr);
-        const result = Vec3d(valL, ((13 * valL * (u - ur)) + 1) / 2, ((13 * valL * (v - vr)) + 1) / 2);
+        const valL = yr > e ? (116 * (yr ^^ (1 / 3f)) - 16) : (k * yr);
+        const result = Vec3d(valL, 13 * valL * (u - ur), 13 * valL * (v - vr));
 
         auto channels = (cast(ColorSpace.State*)state).channels;
         foreach (channel; channels) {
@@ -142,7 +138,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             if (index >= 0)
-                channel.store01Sample(output, result[index]);
+                channel.store01Sample(output, channel.sampleRangeAs01(result[index]));
             else
                 channel.storeDefaultSample(output);
         }

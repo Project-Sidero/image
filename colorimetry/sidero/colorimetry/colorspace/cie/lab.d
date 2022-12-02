@@ -68,27 +68,22 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
                 index = 2;
 
             if (index >= 0) {
-                got[index] = value;
+                got[index] = channel.sample01AsRange(value);
             }
         }
 
         const e = 2.16 / cast(double)24389;
         const k = 243.89 / cast(double)27;
-
-        const L = got[0] * 100;
-        const A = (got[1] - 0.5) * 200;
-        const B = (got[2] - 0.5) * 200;
-
         const whitePoint = Illuminants.E_2Degrees.asXYZ;
 
-        const fy = (L + 16) / 116;
-        const fx = (A / 500) + fy;
-        const fz = fy - (B / 200);
+        const fy = (got[0] + 16) / 116;
+        const fx = (got[1] / 500) + fy;
+        const fz = fy - (got[2] / 200);
 
         const xrc = fx ^^ 3;
         const xr = xrc > e ? xrc : ((116 * fx - 16) / k);
-        const yr = L > k * e ? (((L + 16) / 116) ^^ 3) : (L / k); // ok
-        const zrc = fz ^^3;
+        const yr = got[0] > k * e ? (((got[0] + 16) / 116) ^^ 3) : (got[0] / k); // ok
+        const zrc = fz ^^ 3;
         const zr = zrc > e ? zrc : ((116 * fz - 16) / k);
 
         const result = Vec3d(xr, yr, zr) * whitePoint;
@@ -116,9 +111,7 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const fy = fc[1] > e ? fc[1] : ((k * xyzr[1] + 16) / 116);
         const fz = fc[2] > e ? fc[2] : ((k * xyzr[2] + 16) / 116);
 
-        const result = Vec3d(1.16 * fy - 0.16,
-            ((500 * (fx - fy)) + 100) / 200,
-            ((200 * (fy - fz)) + 100) / 200);
+        const result = Vec3d(116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz));
 
         auto channels = (cast(ColorSpace.State*)state).channels;
         foreach (channel; channels) {
@@ -135,7 +128,7 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             if (index >= 0)
-                channel.store01Sample(output, result[index]);
+                channel.store01Sample(output, channel.sampleRangeAs01(result[index]));
             else
                 channel.storeDefaultSample(output);
         }
