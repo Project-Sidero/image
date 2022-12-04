@@ -37,6 +37,10 @@ struct Pixel {
                     allocator.dispose(&this);
                 }
             }
+
+            bool opEquals(scope Internal other) const {
+                return data.ptr is other.data.ptr;
+            }
         }
     }
 

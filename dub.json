@@ -6,7 +6,7 @@
     "description": "A minimal D application.",
     "license": "proprietary",
     "name": "sidero_image",
-    "dflags": ["-preview=dip1000", "-preview=dip25", "-allinst"],
+    "dflags": ["-preview=dip1000", "-preview=dip25"],
     "dependencies": {
         "sidero_image:colorimetry": "*"
     },
@@ -38,6 +38,7 @@
         {
             "name": "colorimetry",
             "targetType": "sourceLibrary",
+            "dflags": ["-preview=dip1000", "-preview=dip25"],
             "importPaths": [
                 "colorimetry"
             ],
@@ -50,15 +51,12 @@
             "configurations": [
                 {
                     "name": "library",
-                    "targetType": "staticLibrary",
-                    "dflags": ["-preview=dip1000", "-preview=dip25", "-allinst"],
                     "buildOptions": [
                         "betterC"
                     ]
                 },
                 {
-                    "name": "unittest",
-                    "targetType": "sourceLibrary"
+                    "name": "unittest"
                 }
             ]
         }

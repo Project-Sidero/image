@@ -44,7 +44,8 @@ struct CIExyYSample {
 
     ///
     Vec3d asXYZ() scope const pure {
-        return Vec3d((x * Y) / y, Y, ((1f - x - y) * Y) / y);
+        const result = Vec3d((x * Y) / y, Y, ((1f - x - y) * Y) / y);
+        return result;
     }
 }
 

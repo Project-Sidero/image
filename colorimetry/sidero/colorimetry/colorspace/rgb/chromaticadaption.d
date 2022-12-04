@@ -24,22 +24,22 @@ Mat3x3d matrixForRGBXYZ(scope const RGBChromacity chromacitySource,
     const rXYZ = chromacitySource.r, gXYZ = chromacitySource.g, bXYZ = chromacitySource.b, wpXYZ = chromacitySource.whitePoint;
     const xr = rXYZ.x, yr = rXYZ.y, xg = gXYZ.x, yg = gXYZ.y, xb = bXYZ.x, yb = bXYZ.y;
 
-    Mat3x3d m = Mat3x3d(xr / yr, 1, (1 - xr - yr) / yr, xg / yg, 1, (1 - xg - yg) / yg, xb / yb, 1, (1 - xb - yb) / yb);
+    const m = Mat3x3d(xr / yr, 1, (1 - xr - yr) / yr, xg / yg, 1, (1 - xg - yg) / yg, xb / yb, 1, (1 - xb - yb) / yb);
 
-    Mat3x3d mi = m.inverse;
-    Vec3d s = mi.transpose.dotProduct(chromacitySource.whitePoint.asXYZ);
+    const mi = m.inverse;
+    const miT = mi.transpose;
+    const s = miT.dotProduct(chromacitySource.whitePoint.asXYZ);
 
-    Mat3x3d ret1 = Mat3x3d(s[0] * m[0, 0], s[0] * m[1, 0], s[0] * m[2, 0], s[1] * m[0, 1], s[1] * m[1, 1], s[1] * m[2,
-            1], s[2] * m[0, 2], s[2] * m[1, 2], s[2] * m[2, 2],).transpose;
-    Mat3x3d ret;
+    const ret1 = Mat3x3d(s[0] * m[0, 0], s[0] * m[1, 0], s[0] * m[2, 0], s[1] * m[0, 1], s[1] * m[1, 1], s[1] * m[2, 1],
+            s[2] * m[0, 2], s[2] * m[1, 2], s[2] * m[2, 2]);
+    const ret1T = ret1;
 
     if (illuminantDestination.asXYZ != chromacitySource.whitePoint.asXYZ) {
         const adapt = matrixForChromaticAdaptionXYZToXYZ(chromacitySource.whitePoint, illuminantDestination, method);
-        ret = ret1.dotProduct(adapt);
+        const ret = ret1T.dotProduct(adapt);
+        return ret;
     } else
-        ret = ret1;
-
-    return ret;
+        return ret1T;
 }
 
 unittest {

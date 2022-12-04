@@ -49,7 +49,7 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
     state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
-        Vec3d got;
+        Vec3d got = void;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
         foreach (channel; channels) {
@@ -86,7 +86,8 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const zrc = fz ^^ 3;
         const zr = zrc > e ? zrc : ((116 * fz - 16) / k);
 
-        const result = Vec3d(xr, yr, zr) * whitePoint;
+        const resultA = Vec3d(xr, yr, zr);
+        const result = resultA * whitePoint;
         return Result!CIEXYZSample(CIEXYZSample(result, Illuminants.E_2Degrees));
     };
 

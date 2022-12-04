@@ -45,7 +45,7 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
     }
 
     RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace().ptr;
-    *model = RGBModel!Gamma(whitePoint, primaryChromacity, gamma, allocator);
+    model.__ctor(whitePoint, primaryChromacity, gamma, allocator);
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
