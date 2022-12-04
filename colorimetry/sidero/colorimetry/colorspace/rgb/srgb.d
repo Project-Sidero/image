@@ -335,16 +335,20 @@ struct sRGBGamma {
 
     ///
     double apply(double input) {
+        import core.stdc.math : pow;
+
         if (input > 0.0031308)
-            return 1.055 * (input ^^ (1 / 2.4)) - 0.055;
+            return 1.055 * pow(input, (1 / 2.4)) - 0.055;
         else
             return input * 12.92;
     }
 
     ///
     double unapply(double input) {
+        import core.stdc.math : pow;
+
         if (input > 0.04045)
-            return ((input + 0.055) / 1.055) ^^ 2.4;
+            return pow((input + 0.055) / 1.055, 2.4);
         else
             return input / 12.92;
     }

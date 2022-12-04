@@ -39,6 +39,7 @@
             "name": "colorimetry",
             "targetType": "sourceLibrary",
             "dflags": ["-preview=dip1000", "-preview=dip25"],
+            "dflags-dmd": ["-allinst"],
             "importPaths": [
                 "colorimetry"
             ],

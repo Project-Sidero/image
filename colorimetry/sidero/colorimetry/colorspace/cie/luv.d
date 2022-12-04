@@ -48,6 +48,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
     state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
+        import core.stdc.math : pow;
 
         Vec3d got = void;
 
@@ -76,7 +77,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const k = 24389 / cast(double)27;
         const whitePoint = Illuminants.E_2Degrees.asXYZ;
 
-        const valY = got[0] > (k * e) ? (((got[0] + 16) / 116) ^^ 3) : (got[0] / k);
+        const valY = got[0] > (k * e) ? pow(((got[0] + 16) / 116), 3) : (got[0] / k);
 
         // extract u'v'
         const uvM = Vec3d(1, 15, 3);
@@ -99,6 +100,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
+        import core.stdc.math : pow;
 
         Vec3d got = input.sample;
 
@@ -122,7 +124,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const ur = (4 * whitePoint[0]) / uvr;
         const vr = (9 * whitePoint[1]) / uvr;
 
-        const valL = yr > e ? (116 * (yr ^^ (1 / 3f)) - 16) : (k * yr);
+        const valL = yr > e ? (116 * pow(yr, (1 / 3f)) - 16) : (k * yr);
         const result = Vec3d(valL, 13 * valL * (u - ur), 13 * valL * (v - vr));
 
         auto channels = (cast(ColorSpace.State*)state).channels;

@@ -706,11 +706,13 @@ struct GammaPower {
 
     ///
     double apply(double input) {
-        return input ^^ (1f / factor);
+        import core.stdc.math : pow;
+        return pow(input, (1f / factor));
     }
 
     ///
     double unapply(double input) {
-        return input ^^ factor;
+        import core.stdc.math : pow;
+        return pow(input, factor);
     }
 }
