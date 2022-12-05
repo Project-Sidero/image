@@ -32,7 +32,7 @@ Mat3x3d matrixForRGBXYZ(scope const RGBChromacity chromacitySource,
 
     const ret1 = Mat3x3d(s[0] * m[0, 0], s[0] * m[1, 0], s[0] * m[2, 0], s[1] * m[0, 1], s[1] * m[1, 1], s[1] * m[2, 1],
             s[2] * m[0, 2], s[2] * m[1, 2], s[2] * m[2, 2]);
-    const ret1T = ret1;
+    const ret1T = ret1.transpose;
 
     if (illuminantDestination.asXYZ != chromacitySource.whitePoint.asXYZ) {
         const adapt = matrixForChromaticAdaptionXYZToXYZ(chromacitySource.whitePoint, illuminantDestination, method);
