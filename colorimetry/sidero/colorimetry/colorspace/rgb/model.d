@@ -12,6 +12,23 @@ import sidero.base.text;
 ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChromacityCoordinate whitePoint,
         CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init,
         String_UTF8 name = String_UTF8.init) @trusted {
+
+    if (name.isNull) {
+        name = format("rgb_%s%s[%sx%s][r:%sx%s, g:%sx%s, b:%sx%s]%s", channelBitCount, isFloat ? "f" : "", whitePoint.x,
+                whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
+                primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
+    }
+
+    const minimum = double(0), maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
+
+    return rgb(channelBitCount, isFloat, whitePoint, primaryChromacity, minimum, minimum, minimum, maximum, maximum,
+            maximum, gamma, allocator, name);
+}
+
+///
+ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChromacityCoordinate whitePoint,
+        CIEChromacityCoordinate[3] primaryChromacity, double minR, double minG, double minB, double maxR, double maxG,
+        double maxB, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init, String_UTF8 name = String_UTF8.init) @trusted {
     if (allocator.isNull)
         allocator = globalAllocator();
 
@@ -53,13 +70,18 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         channels[0].isSigned = false;
         channels[0].isWhole = !isFloat;
 
-        channels[0].minimum = 0;
-        channels[0].maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
         channels[0].clampMinimum = true;
         channels[0].clampMaximum = true;
 
         channels[1] = channels[0];
         channels[2] = channels[0];
+
+        channels[0].minimum = minR;
+        channels[0].maximum = maxR;
+        channels[1].minimum = minG;
+        channels[1].maximum = maxG;
+        channels[2].minimum = minB;
+        channels[2].maximum = maxB;
 
         channels[0].name = model.ChannelR;
         channels[1].name = model.ChannelG;

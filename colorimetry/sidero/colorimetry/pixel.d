@@ -83,7 +83,7 @@ struct Pixel {
         {
             void[] temp = this.data;
 
-            foreach (channel; this._colorSpace.channels) {
+            foreach (channel; channels) {
                 channel.storeDefaultSample(temp);
             }
         }
@@ -236,8 +236,9 @@ struct Pixel {
             if (i > 0)
                 sink ~= ", ";
 
-            double value = channel.extractSample01(temp);
-            sink.formattedWrite(String_ASCII("%s"), channel.sample01AsRange(value));
+            const before = channel.extractSample01(temp);
+            const after = channel.sample01AsRange(before);
+            sink.formattedWrite(String_ASCII("%s"), after);
         }
     }
 
@@ -264,8 +265,9 @@ struct Pixel {
             if (i > 0)
                 sink ~= ", ";
 
-            double value = channel.extractSample01(temp);
-            sink.formattedWrite(String_ASCII("%s: %s"), channel.name, channel.sample01AsRange(value));
+            const before = channel.extractSample01(temp);
+            const after = channel.sample01AsRange(before);
+            sink.formattedWrite(String_ASCII("%s: %s"), channel.name, after);
         }
 
         sink ~= ")";

@@ -459,7 +459,7 @@ struct ChannelSpecification {
 
     ///
     size_t numberOfBytes() scope {
-        return cast(ubyte)((bits + 4) / 8f);
+        return cast(ubyte)((bits + 7) / 8f);
     }
 
     ///
@@ -469,11 +469,7 @@ struct ChannelSpecification {
 
         void handle(T)() @trusted nothrow @nogc {
             T* v = cast(T*)buffer.ptr;
-
-            if (clampMinimum)
-                *v = cast(T)minimum;
-            else
-                *v = 0;
+            *v = cast(T)minimum;
         }
 
         if (!isWhole) {
@@ -575,7 +571,7 @@ struct ChannelSpecification {
                 handle!ulong;
         }
 
-        return this.clampSample(ret);
+        return ret;
     }
 
     /// Ditto
@@ -674,6 +670,8 @@ struct ChannelSpecification {
 
     /// Given value in range of specification, output it in 0 .. 1
     double sampleRangeAs01(double input) {
+        this.clampSample(input);
+
         if (minimum < 0)
             input += -minimum;
         else
