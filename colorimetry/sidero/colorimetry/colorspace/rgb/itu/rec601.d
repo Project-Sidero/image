@@ -42,8 +42,6 @@ ColorSpace itu_rec601_rgb(ubyte channelBitCount, bool isFloat, bool haveHeadFoot
 
     const primaryChromacity = primary == Rec601_PrimaryVariant.Rec709 ? Rec709Chromacities
         : (primary == Rec601_PrimaryVariant.Line625 ? Rec601_Line625_Chromacities : Rec601_Line525_Chromacities);
-    const minimum = double(0), maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
-
     double channelMin = double(0), channelMax = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
 
     if (haveHeadFootRoom && !isFloat) {
