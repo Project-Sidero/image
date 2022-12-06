@@ -77,7 +77,6 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
-        import core.stdc.math : pow;
 
         Vec3d got = input.sample;
 
@@ -212,7 +211,7 @@ ColorSpace cie_lchAB(ubyte channelBitCount, RCAllocator allocator = RCAllocator.
     state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
         import std.math : PI;
-        import core.stdc.math : pow, cos, sin;
+        import core.stdc.math : cos, sin;
 
         Vec3d got = void;
 
@@ -249,7 +248,7 @@ ColorSpace cie_lchAB(ubyte channelBitCount, RCAllocator allocator = RCAllocator.
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
         import std.math : PI;
-        import core.stdc.math : pow, sqrt, atan2;
+        import core.stdc.math : sqrt, atan2;
 
         Vec3d got = input.sample;
 

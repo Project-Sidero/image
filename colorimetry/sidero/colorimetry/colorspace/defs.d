@@ -575,7 +575,7 @@ struct ChannelSpecification {
                 handle!ulong;
         }
 
-        return ret;
+        return this.clampSample(ret);
     }
 
     /// Ditto
