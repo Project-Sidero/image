@@ -307,14 +307,13 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
         YCbCrModel!Gamma* model = cast(YCbCrModel!Gamma*)state.getExtraSpace.ptr;
-        Mat3x3d conversionMatrixXYZ = model.fromXYZ;
+        Vec3d asRGB = model.fromXYZ.dotProduct(input.sample);
 
         if (Illuminants.D65_2Degrees.asXYZ != input.whitePoint.asXYZ) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, Illuminants.D65_2Degrees, ScalingMethod.Bradford);
-            conversionMatrixXYZ = conversionMatrixXYZ.dotProduct(adapt);
+            asRGB = adapt.dotProduct(asRGB);
         }
 
-        const asRGB = conversionMatrixXYZ.dotProduct(input.sample);
         auto asYCbCr = model.fromRGB.dotProduct(asRGB);
 
         static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {

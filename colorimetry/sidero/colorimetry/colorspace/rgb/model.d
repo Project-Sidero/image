@@ -126,14 +126,12 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
-        Mat3x3d conversionMatrix = model.fromXYZ;
+        Vec3d got = model.fromXYZ.dotProduct(input.sample);
 
         if (model.whitePoint.asXYZ != input.whitePoint.asXYZ) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, model.whitePoint, ScalingMethod.Bradford);
-            conversionMatrix = conversionMatrix.dotProduct(adapt);
+            got = adapt.dotProduct(got);
         }
-
-        Vec3d got = conversionMatrix.dotProduct(input.sample);
 
         static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
             got[0] = model.gammaState.apply(got[0]);
