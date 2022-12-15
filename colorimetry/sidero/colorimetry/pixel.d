@@ -174,24 +174,33 @@ struct Pixel {
 
     ///
     PixelReference convertTo(ColorSpace newColorSpace, RCAllocator allocator = RCAllocator.init) @trusted {
-        if (isNull)
-            return typeof(return)(NullPointerException);
-
         Pixel ret = Pixel(newColorSpace, allocator);
+        ErrorResult result = convertInto(ret);
+
+        if (result)
+            return typeof(return)(ret);
+        else
+            return typeof(return)(result.error);
+    }
+
+    ///
+    ErrorResult convertInto(ref Pixel pixel) @trusted {
+        if (isNull || pixel.isNull)
+            return typeof(return)(NullPointerException);
 
         {
             auto asXYZ = _colorSpace.toXYZ(data);
             if (!asXYZ)
                 return typeof(return)(asXYZ.error);
 
-            auto result = newColorSpace.fromXYZ(ret.data, asXYZ.get);
+            auto result = pixel.colorSpace.fromXYZ(pixel.data, asXYZ.get);
             if (!result)
                 return typeof(return)(result.error);
         }
 
         {
-            void[] into = ret.data, from = this.data;
-            auto intoChannels = newColorSpace.channels, fromChannels = _colorSpace.channels;
+            void[] into = pixel.data, from = this.data;
+            auto intoChannels = pixel.colorSpace.channels, fromChannels = _colorSpace.channels;
 
             foreach (fromChannel; fromChannels) {
                 double got = fromChannel.extractSample01(from);
@@ -212,7 +221,7 @@ struct Pixel {
             }
         }
 
-        return typeof(return)(ret);
+        return typeof(return)();
     }
 
     ///
