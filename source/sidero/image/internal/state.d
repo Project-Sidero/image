@@ -15,9 +15,6 @@ struct ImageRef {
     size_t width, height;
 }
 
-struct MetaDataStorage {
-}
-
 struct ImageState {
     ptrdiff_t refCount;
     RCAllocator allocator;
@@ -35,7 +32,7 @@ struct ImageState {
 
 export @safe nothrow @nogc:
 
-    this(RCAllocator newAllocator, ColorSpace colorSpace, size_t[2] size, size_t alignment = 0) @trusted {
+    this(RCAllocator newAllocator, ColorSpace colorSpace, size_t[2] size, size_t alignment = 0) scope @trusted {
         this.allocator = newAllocator;
         this.metadata = ConcurrentHashMap!(string, MetaDataStorage)(newAllocator);
 
@@ -76,14 +73,14 @@ export @safe nothrow @nogc:
         }
     }
 
-    ~this() @trusted {
+    ~this() scope @trusted {
         allocator.dispose(data);
     }
 
     // GL_UNPACK_ROW_LENGTH is the original width, GL_UNPACK_SKIP_PIXELS for the LHS to skip pixels
 
     ImageState* dup(RCAllocator newAllocator, size_t[2] start, size_t[2] size, size_t alignment,
-        ColorSpace newColorSpace = ColorSpace.init, bool keepOldMetaData = false) @trusted {
+            ColorSpace newColorSpace = ColorSpace.init, bool keepOldMetaData = false) scope @trusted {
 
         ImageState* ret = newAllocator.make!ImageState(newAllocator, newColorSpace, size, alignment);
 
@@ -102,7 +99,7 @@ export @safe nothrow @nogc:
                 void* sourceDest = source;
 
                 foreach (x; start[0] .. start[0] + size[0]) {
-                    foreach(i, ref v; cast(ubyte[])rowDest[0 .. this.pixelStride])
+                    foreach (i, ref v; cast(ubyte[])rowDest[0 .. this.pixelStride])
                         v = (cast(ubyte*)sourceDest)[i];
 
                     sourceDest += this.pixelStride;
@@ -138,7 +135,7 @@ export @safe nothrow @nogc:
         return ret;
     }
 
-    void subsetSizeAndOffsetFromThis(ref const ImageRef imageRef, out size_t x, out size_t y) @safe nothrow @nogc {
+    void subsetSizeAndOffsetFromThis(ref const ImageRef imageRef, out size_t x, out size_t y) scope @safe nothrow @nogc {
         size_t fromZero = imageRef.dataBegin - &this.data[0];
 
         if (imageRef.rowStride < 0)
@@ -151,25 +148,25 @@ export @safe nothrow @nogc:
         x = fromZero / this.pixelStride;
     }
 
-    bool containsMetaData(Type)() @trusted {
+    bool containsMetaData(Type)() scope @trusted {
         import sidero.base.traits : fullyQualifiedName;
 
         enum keyId = fullyQualifiedName!Type;
         return keyId in metadata;
     }
 
-    void removeMetaData(Type)() @trusted {
+    void removeMetaData(Type)() scope @trusted {
         import sidero.base.traits : fullyQualifiedName;
 
         enum keyId = fullyQualifiedName!Type;
         metadata.remove(keyId);
     }
 
-    size_t metaDataCount() @safe {
+    size_t metaDataCount() scope @safe {
         return metadata.length;
     }
 
-    ResultReference!MetaDataStorage acquireMetaData(Type)() @trusted {
+    ResultReference!MetaDataStorage acquireMetaData(Type)() scope @trusted {
         import sidero.base.traits : fullyQualifiedName;
 
         enum keyId = fullyQualifiedName!Type;
@@ -187,7 +184,7 @@ export @safe nothrow @nogc:
         It is recommended to allocate the image storage to an alignment of 4 bytes per row regardless of usage
         This will assist vectorization
     */
-    void configureAsAlignment(size_t alignment = 4) @trusted {
+    void configureAsAlignment(size_t alignment = 4) scope @trusted {
         // ensures all rows have an alignment of width * components % alignment == 0
         // this covers GL_UNPACK_ALIGNMENT
 
@@ -205,5 +202,58 @@ export @safe nothrow @nogc:
             this.rowStride += this.rowPadding;
 
         this.data = allocator.makeArray!ubyte(this.rowStride * this.height);
+    }
+}
+
+struct MetaDataStorage {
+    alias OnDeallocate = void function(scope void[]) @safe nothrow @nogc;
+
+    private {
+        void[] data;
+        RCAllocator allocator;
+        OnDeallocate onDeallocateDel;
+    }
+
+export @safe nothrow @nogc:
+
+    this(RCAllocator allocator, scope return void[] data, scope return OnDeallocate onDeallocateDel) scope @trusted {
+        this.allocator = allocator;
+        this.data = data;
+        this.onDeallocateDel = onDeallocateDel;
+    }
+
+    this(scope ref MetaDataStorage other) scope @trusted {
+        this.data = other.data;
+        this.allocator = other.allocator;
+
+        other.allocator = RCAllocator.init;
+    }
+
+    @disable this(this);
+
+    ~this() scope @trusted {
+        if (!allocator.isNull && data !is null) {
+            if (this.onDeallocateDel !is null)
+                this.onDeallocateDel(data);
+
+            allocator.dispose(data);
+        }
+    }
+
+    void opAssign(scope ref MetaDataStorage other) scope {
+        __ctor(other);
+    }
+
+    bool isNull() scope const {
+        return data is null;
+    }
+
+    T* getMetaDataRef(T)() scope @trusted {
+        assert(data !is null);
+        return cast(T*)data;
+    }
+
+    string toString() scope const {
+        return isNull ? "null" : "has value";
     }
 }
