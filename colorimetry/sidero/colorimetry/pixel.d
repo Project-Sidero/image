@@ -52,11 +52,11 @@ struct Pixel {
     }
 
     ///
-    this(scope return void[] data, scope return void* user, scope return RCHandle rcHandle) scope @trusted {
+    this(scope return void[] data, ColorSpace colorSpace, scope return void* user, scope return RCHandle rcHandle) scope @trusted {
         assert(data !is null);
-        assert(rcHandle !is null);
 
         this.data = data;
+        this._colorSpace = colorSpace;
         this._user = user;
         this.rcHandler = rcHandle;
     }

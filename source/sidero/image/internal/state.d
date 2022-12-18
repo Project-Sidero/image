@@ -1,4 +1,6 @@
 module sidero.image.internal.state;
+import sidero.image.defs : CImage, Image;
+import sidero.image.metadata.defs;
 import sidero.colorimetry.colorspace;
 import sidero.colorimetry.pixel;
 import sidero.base.allocators;
@@ -13,10 +15,192 @@ struct ImageRef {
     ptrdiff_t pixelStride, rowStride;
     void* dataBegin;
     size_t width, height;
+
+export @safe nothrow @nogc:
+
+    @disable this(int value) const;
+
+    @disable this(ref const ImageRef other) const;
+
+    @disable void opAssign(ref ImageRef other) const;
+    @disable void opAssign(ImageRef other) const;
+
+    @disable auto opCast(T)();
+
+    this(ImageState* state) scope {
+        import core.atomic : atomicOp;
+
+        atomicOp!"+="(state.refCount, 1);
+
+        this.state = state;
+        this.pixelStride = state.pixelStride;
+        this.rowStride = state.rowStride;
+        this.dataBegin = &state.data[0];
+        this.width = state.width;
+        this.height = state.height;
+    }
+
+    this(ref ImageRef other) scope {
+        foreach (i, v; other.tupleof)
+            this.tupleof[i] = v;
+
+        addRef();
+    }
+
+    @disable this(this);
+
+    ~this() scope {
+        removeRef();
+    }
+
+    void opAssign(ref ImageRef other) scope {
+        __ctor(other);
+    }
+
+    void opAssign(ImageRef other) scope {
+        __ctor(other);
+    }
+
+    bool isNull() scope const {
+        return state is null;
+    }
+
+    void addRef() scope {
+        import core.atomic : atomicOp;
+
+        if (!isNull)
+            atomicOp!"+="(state.refCount, 1);
+    }
+
+    void removeRef() scope @trusted {
+        import core.atomic : atomicOp;
+
+        if (isNull)
+            return;
+
+        if (atomicOp!"-="(state.refCount, 1) == 0) {
+            RCAllocator alloc = state.allocator;
+            alloc.dispose(state);
+            state = null;
+        }
+    }
+
+    void offset(size_t x, size_t y) scope @trusted {
+        if (isNull)
+            return;
+
+        assert(x < this.width);
+        assert(y < this.height);
+
+        this.dataBegin += x * this.pixelStride;
+        this.dataBegin += y * this.rowStride;
+
+        this.width -= x;
+        this.height -= y;
+    }
+
+    void subset(size_t width, size_t height) scope {
+        if (isNull)
+            return;
+
+        assert(width < this.width);
+        assert(height < this.height);
+
+        this.width = width;
+        this.height = height;
+    }
+
+    ImageRef dup(RCAllocator allocator = RCAllocator.init, ptrdiff_t newAlignment = -1, bool keepOldMetaData = false) scope {
+        if (isNull)
+            return ImageRef.init;
+        else if (allocator.isNull)
+            allocator = state.allocator;
+
+        if (newAlignment < 0)
+            newAlignment = state.rowAlignment;
+
+        size_t x, y;
+        state.subsetSizeAndOffsetFromThis(this, x, y);
+
+        return ImageRef(state.dup(allocator, [x, y], [this.width, this.height], newAlignment, state.colorSpace,
+                keepOldMetaData, this.pixelStride < 0, this.rowStride < 0));
+    }
+
+    ImageRef dup(ColorSpace colorSpace, RCAllocator allocator = RCAllocator.init, ptrdiff_t newAlignment = -1, bool keepOldMetaData = false) scope {
+        if (isNull)
+            return ImageRef.init;
+        else if (allocator.isNull)
+            allocator = state.allocator;
+
+        if (newAlignment < 0)
+            newAlignment = state.rowAlignment;
+
+        size_t x, y;
+        state.subsetSizeAndOffsetFromThis(this, x, y);
+
+        return ImageRef(state.dup(allocator, [x, y], [this.width, this.height], newAlignment, colorSpace,
+                keepOldMetaData, this.pixelStride < 0, this.rowStride < 0));
+    }
+
+    void flipHorizontal() scope @trusted {
+        if (isNull)
+            return;
+
+        this.dataBegin += (this.width - 1) * this.pixelStride;
+        this.pixelStride *= -1;
+    }
+
+    void flipVertical() scope @trusted {
+        if (isNull)
+            return;
+
+        this.dataBegin += (this.height - 1) * this.rowStride;
+        this.rowStride *= -1;
+    }
+
+    bool containsMetaData(Type)() scope {
+        if (isNull)
+            return false;
+
+        return state.containsMetaData!Type;
+    }
+
+    void removeMetaData(Type)() scope {
+        if (isNull)
+            return;
+
+        state.removeMetaData!Type;
+    }
+
+    ImageMetaData!Type getMetaData(Type)() scope {
+        import image.virtual : VirtualImage;
+
+        if (isNull)
+            return typeof(return).init;
+
+        Image ret;
+        ret.imageRef = this;
+        ret.colorSpace = state.colorSpace;
+
+        return ImageMetaData!Type(this.state.acquireMetaData!Type, ret);
+    }
+
+    size_t metaDataCount() scope {
+        if (isNull)
+            return 0;
+
+        return this.state.metaDataCount;
+    }
+
+    CImage raw() scope @system {
+        import std.math : abs;
+
+        return CImage(this.dataBegin, this.width, this.height, abs(this.pixelStride), this.pixelStride, this.rowStride);
+    }
 }
 
 struct ImageState {
-    ptrdiff_t refCount;
+    shared ptrdiff_t refCount;
     RCAllocator allocator;
 
     void[] data;
@@ -79,63 +263,76 @@ export @safe nothrow @nogc:
 
     // GL_UNPACK_ROW_LENGTH is the original width, GL_UNPACK_SKIP_PIXELS for the LHS to skip pixels
 
-    ImageState* dup(RCAllocator newAllocator, size_t[2] start, size_t[2] size, size_t alignment,
-            ColorSpace newColorSpace = ColorSpace.init, bool keepOldMetaData = false) scope @trusted {
+    ImageState* dup(RCAllocator newAllocator, size_t[2] start, size_t[2] size, size_t alignment, ColorSpace newColorSpace,
+            bool keepOldMetaData, bool flipHorizontal, bool flipVertical) scope @trusted {
 
         ImageState* ret = newAllocator.make!ImageState(newAllocator, newColorSpace, size, alignment);
 
         if (keepOldMetaData)
             ret.metadata = this.metadata;
 
-        void* source = this.data.ptr + (start[0] * this.pixelStride);
-        void* destination = ret.data.ptr;
+        void* ptrToDestination = ret.data.ptr;
+        ptrdiff_t destinationRowStride = ret.rowStride, destinationPixelStride = ret.pixelStride;
+        const destinationPixelSize = ret.pixelStride, destinationRowSize = this.rowStride;
+
+        if (flipVertical) {
+            ptrToDestination += (ret.height - 1) * destinationRowStride;
+            destinationRowStride *= -1;
+        }
+
+        if (flipHorizontal) {
+            ptrToDestination += (ret.width - 1) * destinationPixelStride;
+            destinationPixelStride *= -1;
+        }
+
+        void* ptrToSource = this.data.ptr + (start[0] * this.pixelStride) + (start[1] * this.rowStride);
+        const sourceRowStride = this.rowStride, sourcePixelStride = this.pixelStride, sourcePixelSize = this.pixelStride,
+            sourceRowSize = this.rowStride;
+
+        void handle(bool sameColorSpace, bool flipHorizontal = false)() {
+            foreach (y; 0 .. size[1]) {
+                void* rowDest = ptrToDestination;
+                void* rowSrc = ptrToSource;
+
+                static if (sameColorSpace) {
+                    foreach (x; 0 .. size[0]) {
+                        rowSrc += sourcePixelStride;
+                        rowDest += destinationPixelStride;
+
+                        void[] pixelInto = rowDest[0 .. destinationPixelSize], pixelFrom = rowSrc[0 .. sourcePixelSize];
+
+                        Pixel destinationPixel = Pixel(pixelInto, ret.colorSpace, null, null),
+                            sourcePixel = Pixel(pixelFrom, this.colorSpace, null, null);
+                        sourcePixel.convertInto(destinationPixel);
+                    }
+                } else static if (flipHorizontal) {
+                    size_t i = sourceRowSize - 1;
+                    foreach (ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
+                        v = (cast(ubyte*)rowSrc)[i--];
+                } else {
+                    foreach (i, ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
+                        v = (cast(ubyte*)rowSrc)[i];
+                }
+
+                ptrToDestination += destinationRowStride;
+                ptrToSource += sourceRowStride;
+            }
+        }
 
         if (this.colorSpace == newColorSpace) {
             assert(ret.pixelStride == this.pixelStride);
-
-            // fast track copy
-            foreach (y; start[1] .. start[1] + size[1]) {
-                void* rowDest = destination;
-                void* sourceDest = source;
-
-                foreach (x; start[0] .. start[0] + size[0]) {
-                    foreach (i, ref v; cast(ubyte[])rowDest[0 .. this.pixelStride])
-                        v = (cast(ubyte*)sourceDest)[i];
-
-                    sourceDest += this.pixelStride;
-                    rowDest += ret.pixelStride;
-                }
-
-                source += this.rowStride;
-                destination += ret.rowStride;
-            }
+            handle!true;
         } else {
-            // Unfortunately we have to do a slow copy over with color conversion.
-            // We don't match, although we may have same core channel, something isn't right anyway.
-
-            foreach (y; start[1] .. start[1] + size[1]) {
-                void* rowDest = destination;
-                void* sourceDest = source;
-
-                foreach (x; start[0] .. start[0] + size[0]) {
-                    void[] pixelInto = rowDest[0 .. ret.pixelStride], pixelFrom = source[0 .. this.pixelStride];
-
-                    Pixel sourcePixel = Pixel(pixelFrom, null, null), destinationPixel = Pixel(pixelInto, null, null);
-                    sourcePixel.convertInto(destinationPixel);
-
-                    sourceDest += this.pixelStride;
-                    rowDest += ret.pixelStride;
-                }
-
-                source += this.rowStride;
-                destination += ret.rowStride;
-            }
+            if (flipHorizontal)
+                handle!(false, true);
+            else
+                handle!(false, false);
         }
 
         return ret;
     }
 
-    void subsetSizeAndOffsetFromThis(ref const ImageRef imageRef, out size_t x, out size_t y) scope @safe nothrow @nogc {
+    void subsetSizeAndOffsetFromThis(scope const ref ImageRef imageRef, ref size_t x, ref size_t y) scope {
         size_t fromZero = imageRef.dataBegin - &this.data[0];
 
         if (imageRef.rowStride < 0)
@@ -162,11 +359,11 @@ export @safe nothrow @nogc:
         metadata.remove(keyId);
     }
 
-    size_t metaDataCount() scope @safe {
+    size_t metaDataCount() scope {
         return metadata.length;
     }
 
-    ResultReference!MetaDataStorage acquireMetaData(Type)() scope @trusted {
+    MetaDataStorageReference acquireMetaData(Type)() scope @trusted {
         import sidero.base.traits : fullyQualifiedName;
 
         enum keyId = fullyQualifiedName!Type;
@@ -205,6 +402,27 @@ export @safe nothrow @nogc:
     }
 }
 
+unittest {
+    import sidero.colorimetry.colorspace;
+    import sidero.colorimetry.illuminants;
+    import sidero.colorimetry.colorspace.cie.xyz;
+    import sidero.base.allocators;
+
+    ImageState original = ImageState(globalAllocator(), cie_XYZ(32, Illuminants.E_2Degrees), [10, 10], 16);
+
+    assert(original.data.ptr !is null);
+    assert(original.width == 10);
+    assert(original.height == 10);
+    assert(original.pixelStride == 3 * 4);
+
+    ImageState* copied = original.dup(globalAllocator(), [2, 2], [6, 7], 0, original.colorSpace, true, false, false);
+    assert(copied.width == 6);
+    assert(copied.height == 7);
+    assert(copied.pixelStride == original.pixelStride);
+}
+
+alias MetaDataStorageReference = ResultReference!MetaDataStorage;
+
 struct MetaDataStorage {
     alias OnDeallocate = void function(scope void[]) @safe nothrow @nogc;
 
@@ -225,6 +443,7 @@ export @safe nothrow @nogc:
     this(scope ref MetaDataStorage other) scope @trusted {
         this.data = other.data;
         this.allocator = other.allocator;
+        this.onDeallocateDel = other.onDeallocateDel;
 
         other.allocator = RCAllocator.init;
     }
