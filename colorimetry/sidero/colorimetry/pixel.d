@@ -14,6 +14,9 @@ struct Pixel {
     alias RCHandle = void delegate(bool addRef, scope void* _user) @safe nothrow @nogc;
 
     private {
+        import std.meta : allSatisfy;
+        import std.traits : isNumeric;
+
         void[] data;
         ColorSpace _colorSpace;
         void* _user;
@@ -110,7 +113,7 @@ struct Pixel {
     }
 
     ///
-    ResultReference!T channel(T)(scope string name) @trusted {
+    ResultReference!T channel(T)(scope string name) scope @trusted {
         size_t offset, length;
 
         foreach (c; _colorSpace.channels) {
@@ -173,7 +176,7 @@ struct Pixel {
     }
 
     ///
-    PixelReference convertTo(ColorSpace newColorSpace, RCAllocator allocator = RCAllocator.init) @trusted {
+    PixelReference convertTo(ColorSpace newColorSpace, RCAllocator allocator = RCAllocator.init) scope @trusted {
         Pixel ret = Pixel(newColorSpace, allocator);
         ErrorResult result = convertInto(ret);
 
@@ -184,7 +187,7 @@ struct Pixel {
     }
 
     ///
-    ErrorResult convertInto(ref Pixel pixel) @trusted {
+    ErrorResult convertInto(scope ref Pixel pixel) scope @trusted {
         if (isNull || pixel.isNull)
             return typeof(return)(NullPointerException);
 
@@ -225,14 +228,55 @@ struct Pixel {
     }
 
     ///
-    String_UTF8 toString(RCAllocator allocator = globalAllocator()) @trusted {
+    ErrorResult set(Values...)(Values values) scope if (allSatisfy!(isNumeric, Values)) {
+        if (isNull)
+            return typeof(return)(NullPointerException);
+
+        auto channels = _colorSpace.channels;
+        if (channels.length != values.length)
+            return typeof(return)(MalformedInputException("Number of channels does not match inputs"));
+
+        void[] temp = data;
+
+        static foreach (Value; values) {
+            {
+                assert(!channels.empty);
+                auto spec = channels.front;
+                assert(spec);
+
+                double value01 = spec.sampleRangeAs01(cast(double)Value);
+                spec.store01Sample(temp, value01);
+
+                channels.popFront;
+            }
+        }
+
+        return ErrorResult.init;
+    }
+
+    ///
+    Pixel dup(RCAllocator allocator = RCAllocator.init) scope @trusted {
+        if (isNull)
+            return Pixel.init;
+
+        ColorSpace colorSpace = this._colorSpace;
+        Pixel ret = Pixel(colorSpace, allocator);
+
+        foreach (i, b; cast(ubyte[])this.data)
+            (cast(ubyte[])ret.data)[i] = b;
+
+        return ret;
+    }
+
+    ///
+    String_UTF8 toString(RCAllocator allocator = globalAllocator()) scope @trusted {
         StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
         toString(ret);
         return ret.asReadOnly;
     }
 
     ///
-    void toString(Sink)(scope ref Sink sink) @trusted {
+    void toString(Sink)(scope ref Sink sink) scope @trusted {
         if (this.isNull) {
             sink ~= "null";
             return;
@@ -252,14 +296,14 @@ struct Pixel {
     }
 
     ///
-    String_UTF8 toStringPretty(RCAllocator allocator = globalAllocator()) @trusted {
+    String_UTF8 toStringPretty(RCAllocator allocator = globalAllocator()) scope @trusted {
         StringBuilder_UTF8 ret = StringBuilder_UTF8(allocator);
         toStringPretty(ret);
         return ret.asReadOnly;
     }
 
     ///
-    void toStringPretty(Sink)(scope ref Sink sink) {
+    void toStringPretty(Sink)(scope ref Sink sink) scope {
         if (this.isNull) {
             sink ~= "null";
             return;

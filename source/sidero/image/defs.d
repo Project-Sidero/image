@@ -64,6 +64,63 @@ export @safe nothrow @nogc:
     }
 
     ///
+    unittest {
+        ColorSpace colorSpace = sRGB8();
+        Image image = Image(colorSpace, 2, 2);
+        assert(!image.isNull);
+        assert(image.width == 2);
+        assert(image.height == 2);
+
+        static ubyte[3][4] Values = [[34, 72, 59], [44, 82, 69], [134, 172, 159], [144, 182, 169]];
+
+        {
+            auto pixel = image[0, 0];
+            assert(pixel);
+            auto got = pixel.set(Values[0][0], Values[0][1], Values[0][2]);
+            assert(got);
+
+            pixel = image[1, 0];
+            assert(pixel);
+            got = pixel.set(Values[1][0], Values[1][1], Values[1][2]);
+            assert(got);
+
+            pixel = image[0, 1];
+            assert(pixel);
+            got = pixel.set(Values[2][0], Values[2][1], Values[2][2]);
+            assert(got);
+
+            pixel = image[1, 1];
+            assert(pixel);
+            got = pixel.set(Values[3][0], Values[3][1], Values[3][2]);
+            assert(got);
+        }
+
+        {
+            size_t offset;
+
+            foreach (y; 0 .. 2) {
+                foreach (x; 0 .. 2) {
+                    auto pixel = image[x, y];
+                    assert(pixel);
+
+                    auto r = pixel.channel!ubyte("r");
+                    assert(r);
+                    auto g = pixel.channel!ubyte("g");
+                    assert(g);
+                    auto b = pixel.channel!ubyte("b");
+                    assert(b);
+
+                    assert(r == Values[offset][0]);
+                    assert(g == Values[offset][1]);
+                    assert(b == Values[offset][2]);
+
+                    offset++;
+                }
+            }
+        }
+    }
+
+    ///
     size_t opDollar(int op)() scope if (op == 0 || op == 1) {
         if (isNull)
             return 0;
@@ -72,6 +129,20 @@ export @safe nothrow @nogc:
             return imageRef.width;
         else
             return imageRef.height;
+    }
+
+    ///
+    size_t width() scope {
+        if (isNull)
+            return 0;
+        return imageRef.width;
+    }
+
+    ///
+    size_t height() scope {
+        if (isNull)
+            return 0;
+        return imageRef.height;
     }
 
     ///
@@ -118,6 +189,22 @@ export @safe nothrow @nogc:
     }
 
     ///
+    PixelReference opIndex(size_t x, size_t y) scope return @trusted {
+        if (isNull)
+            return typeof(return)(NullPointerException);
+
+        assert(x < imageRef.width);
+        assert(y < imageRef.height);
+
+        void* location = imageRef.dataBegin + (imageRef.rowStride * y) + (imageRef.pixelStride * x);
+        const size = imageRef.pixelStride < 0 ? -imageRef.pixelStride : imageRef.pixelStride;
+        void[] array = location[0 .. size];
+
+        imageRef.addRef;
+        return typeof(return)(Pixel(array, this.colorSpace, cast(void*)null, &imageRef.rc));
+    }
+
+    ///
     Image dup(RCAllocator allocator = RCAllocator(), bool keepOldMetaData = false) scope @trusted {
         if (isNull)
             return Image.init;
@@ -151,21 +238,6 @@ export @safe nothrow @nogc:
         ret.colorSpace = this.colorSpace;
 
         return ret;
-    }
-
-    ///
-    PixelReference opIndex(size_t x, size_t y) scope return @trusted {
-        if (isNull)
-            return typeof(return)(NullPointerException);
-
-        assert(x < imageRef.width);
-        assert(y < imageRef.height);
-
-        void* location = imageRef.dataBegin + (imageRef.rowStride * y) + (imageRef.pixelStride * x);
-        const size = imageRef.pixelStride < 0 ? -imageRef.pixelStride : imageRef.pixelStride;
-        void[] array = location[0 .. size];
-
-        return typeof(return)(Pixel(array, this.colorSpace, cast(void*)null, &imageRef.rc));
     }
 
     ///

@@ -13,6 +13,78 @@ static immutable CIEChromacityCoordinate[3] sRGBChromacities = [
 ];
 
 ///
+ColorSpace sRGB8(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(8, false, false, false);
+        approx = sRGB(8, false, false, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+/// Linear
+ColorSpace sRGB8l(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(8, false, true, false);
+        approx = sRGB(8, false, true, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+///
+ColorSpace sRGB16(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(16, false, false, false);
+        approx = sRGB(16, false, false, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+/// Linear
+ColorSpace sRGB16l(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(16, false, true, false);
+        approx = sRGB(16, false, true, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+/// Float
+ColorSpace sRGBf(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(32, true, false, false);
+        approx = sRGB(32, true, false, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+/// Float, linear
+ColorSpace sRGBfl(bool approxGamma = false) @trusted {
+    __gshared ColorSpace approx, nonApprox;
+
+    if (approx.isNull) {
+        nonApprox = sRGB(32, true, true, false);
+        approx = sRGB(32, true, true, true);
+    }
+
+    return approxGamma ? approx : nonApprox;
+}
+
+///
 ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false, bool approxGamma = false) {
     import sidero.base.text;
 
@@ -42,17 +114,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!float("r");
-        assert(channel);
-        channel = 0.8;
-
-        channel = pixel.channel!float("g");
-        assert(channel);
-        channel = 0.85;
-
-        channel = pixel.channel!float("b");
-        assert(channel);
-        channel = 0.9;
+        pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -101,17 +163,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!float("r");
-        assert(channel);
-        channel = 0.8;
-
-        channel = pixel.channel!float("g");
-        assert(channel);
-        channel = 0.85;
-
-        channel = pixel.channel!float("b");
-        assert(channel);
-        channel = 0.9;
+        pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -160,17 +212,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!float("r");
-        assert(channel);
-        channel = 0.8;
-
-        channel = pixel.channel!float("g");
-        assert(channel);
-        channel = 0.85;
-
-        channel = pixel.channel!float("b");
-        assert(channel);
-        channel = 0.9;
+        pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -223,17 +265,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!ubyte("r");
-        assert(channel);
-        channel = 231;
-
-        channel = pixel.channel!ubyte("g");
-        assert(channel);
-        channel = 237;
-
-        channel = pixel.channel!ubyte("b");
-        assert(channel);
-        channel = 243;
+        pixel.set(231, 237, 243);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -281,17 +313,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        auto channel = pixel.channel!float("r");
-        assert(channel);
-        channel = 0.8;
-
-        channel = pixel.channel!float("g");
-        assert(channel);
-        channel = 0.85;
-
-        channel = pixel.channel!float("b");
-        assert(channel);
-        channel = 0.9;
+        pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
