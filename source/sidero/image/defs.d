@@ -95,7 +95,10 @@ export @safe nothrow @nogc:
             assert(got);
         }
 
+        image.flipBoth;
+
         {
+            static Offsets = [3, 2, 1, 0];
             size_t offset;
 
             foreach (y; 0 .. 2) {
@@ -110,9 +113,9 @@ export @safe nothrow @nogc:
                     auto b = pixel.channel!ubyte("b");
                     assert(b);
 
-                    assert(r == Values[offset][0]);
-                    assert(g == Values[offset][1]);
-                    assert(b == Values[offset][2]);
+                    assert(r == Values[Offsets[offset]][0]);
+                    assert(g == Values[Offsets[offset]][1]);
+                    assert(b == Values[Offsets[offset]][2]);
 
                     offset++;
                 }
