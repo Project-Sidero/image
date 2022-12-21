@@ -4,7 +4,7 @@ import sidero.image.defs;
 ///
 struct ImageMetaData(Type) {
     private {
-        import image.internal.state : MetaDataStorage, MetaDataStorageReference;
+        import sidero.image.internal.state : MetaDataStorage, MetaDataStorageReference;
 
         MetaDataStorageReference reference;
         Image image;
@@ -31,7 +31,7 @@ export @safe nothrow @nogc:
     }
 
     ///
-    ref Type _get() scope {
+    ref Type get() scope return @trusted {
         if (isNull)
             assert(0);
 
@@ -42,16 +42,16 @@ export @safe nothrow @nogc:
     }
 
     ///
-    alias _get this;
+    alias get this;
 
     ///
-    Image getImage() scope {
+    Image getImage() scope return {
         return image;
     }
 
     ///
     bool isNull() scope const {
-        if (reference.isNull)
+        if (!reference || reference.isNull)
             return true;
 
         static if (__traits(hasMember, Type, "isNull")) {

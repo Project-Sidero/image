@@ -142,6 +142,26 @@ export @safe nothrow @nogc:
             assert(g == Values[3][1]);
             assert(b == Values[3][2]);
         }
+
+        {
+            static struct SomeInfo {
+                int number;
+            }
+
+            assert(image.metaDataCount == 0);
+            assert(!image.containsMetaData!SomeInfo);
+
+            auto got = image.getMetaData!SomeInfo;
+            assert(image.metaDataCount == 1);
+            got.number = 27;
+
+            auto got2 = image.getMetaData!SomeInfo;
+            assert(image.metaDataCount == 1);
+            assert(got2.number == 27);
+
+            image.removeMetaData!SomeInfo;
+            assert(image.metaDataCount == 0);
+        }
     }
 
     ///

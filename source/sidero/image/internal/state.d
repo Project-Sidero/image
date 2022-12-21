@@ -179,9 +179,7 @@ export @safe nothrow @nogc:
         state.removeMetaData!Type;
     }
 
-    ImageMetaData!Type getMetaData(Type)() scope {
-        import image.virtual : VirtualImage;
-
+    ImageMetaData!Type getMetaData(Type)() scope @trusted {
         if (isNull)
             return typeof(return).init;
 
@@ -376,11 +374,17 @@ export @safe nothrow @nogc:
         enum keyId = fullyQualifiedName!Type;
         auto ret = metadata[keyId];
 
-        if (!ret.isNull)
+        if (ret)
             return ret;
 
         Type* temp = allocator.make!Type;
-        metadata[keyId] = MetaDataStorage(allocator, temp);
+        MetaDataStorage.OnDeallocate onDeallocate;
+
+        static if (__traits(compiles, {onDeallocate = &temp.__dtor;})) {
+            onDeallocate = &temp.__dtor;
+        }
+
+        metadata[keyId] = MetaDataStorage(allocator, (cast(void*)temp)[0 .. Type.sizeof], onDeallocate);
         return metadata[keyId];
     }
 
