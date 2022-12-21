@@ -40,7 +40,7 @@ export @safe nothrow @nogc:
         this.height = state.height;
     }
 
-    this(ref ImageRef other) scope {
+    this(scope return ref ImageRef other) scope @trusted {
         foreach (i, v; other.tupleof)
             this.tupleof[i] = v;
 
@@ -63,6 +63,13 @@ export @safe nothrow @nogc:
 
     bool isNull() scope const {
         return state is null;
+    }
+
+    void rc(bool addRef, scope void* user) {
+        if (addRef)
+            this.addRef;
+        else
+            removeRef;
     }
 
     void addRef() scope {
@@ -127,7 +134,7 @@ export @safe nothrow @nogc:
     }
 
     ImageRef dup(ColorSpace colorSpace, RCAllocator allocator = RCAllocator.init, ptrdiff_t newAlignment = -1, bool keepOldMetaData = false) scope {
-        if (isNull)
+        if (isNull || colorSpace.isNull)
             return ImageRef.init;
         else if (allocator.isNull)
             allocator = state.allocator;

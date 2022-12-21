@@ -59,7 +59,7 @@ struct ColorSpace {
 
 @safe nothrow @nogc:
 
-    this(scope ref ColorSpace other) scope @trusted {
+    this(scope return ref ColorSpace other) scope @trusted {
         this.state = other.state;
 
         if (state !is null)

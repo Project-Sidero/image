@@ -105,12 +105,12 @@ struct Pixel {
     }
 
     ///
-    ColorSpace colorSpace() scope {
+    ColorSpace colorSpace() scope @trusted {
         return _colorSpace;
     }
 
     ///
-    ResultReference!T channel(T)(string name) @trusted {
+    ResultReference!T channel(T)(scope string name) @trusted {
         size_t offset, length;
 
         foreach (c; _colorSpace.channels) {
