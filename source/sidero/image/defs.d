@@ -121,6 +121,27 @@ export @safe nothrow @nogc:
                 }
             }
         }
+
+        {
+            Result!Image sliced = image[0 .. 1, 0 .. 1];
+            assert(sliced);
+            assert(sliced.width == 1);
+            assert(sliced.height == 1);
+
+            auto pixel = image[0, 0];
+            assert(pixel);
+
+            auto r = pixel.channel!ubyte("r");
+            assert(r);
+            auto g = pixel.channel!ubyte("g");
+            assert(g);
+            auto b = pixel.channel!ubyte("b");
+            assert(b);
+
+            assert(r == Values[3][0]);
+            assert(g == Values[3][1]);
+            assert(b == Values[3][2]);
+        }
     }
 
     ///
