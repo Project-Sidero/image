@@ -200,7 +200,13 @@ export @safe nothrow @nogc:
     CImage raw() scope @system {
         import std.math : abs;
 
-        return CImage(this.dataBegin, this.width, this.height, abs(this.pixelStride), this.pixelStride, this.rowStride);
+        CImage ret;
+
+        () @system {
+            ret = CImage(this.dataBegin, this.width, this.height, abs(this.pixelStride), this.pixelStride, this.rowStride);
+        }();
+
+        return ret;
     }
 }
 
@@ -380,7 +386,7 @@ export @safe nothrow @nogc:
         Type* temp = allocator.make!Type;
         MetaDataStorage.OnDeallocate onDeallocate;
 
-        static if (__traits(compiles, {onDeallocate = &temp.__dtor;})) {
+        static if (__traits(compiles, { onDeallocate = &temp.__dtor; })) {
             onDeallocate = &temp.__dtor;
         }
 
