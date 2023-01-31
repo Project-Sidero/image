@@ -42,6 +42,8 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         state.name = name;
     }
 
+    state.whitePoint = whitePoint;
+
     state.copyModelFromTo = (from, to) @trusted {
         RGBModel!Gamma* modelFrom = cast(RGBModel!Gamma*)from.getExtraSpace().ptr;
         RGBModel!Gamma* modelTo = cast(RGBModel!Gamma*)to.getExtraSpace().ptr;
@@ -119,7 +121,7 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
             }
         }
 
-        return Result!CIEXYZSample(CIEXYZSample(model.toXYZ.dotProduct(sample), model.whitePoint));
+        return Result!CIEXYZSample(CIEXYZSample(model.toXYZ.dotProduct(sample), state.whitePoint));
     };
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
@@ -128,8 +130,8 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
         Vec3d got = model.fromXYZ.dotProduct(input.sample);
 
-        if (model.whitePoint.asXYZ != input.whitePoint.asXYZ) {
-            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, model.whitePoint, ScalingMethod.Bradford);
+        if (state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
+            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
 
@@ -168,7 +170,6 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
 private:
 
 struct RGBModel(Gamma) {
-    CIEChromacityCoordinate whitePoint;
     CIEChromacityCoordinate[3] primaryChromacity;
     Gamma gammaState;
 
@@ -179,7 +180,6 @@ struct RGBModel(Gamma) {
 @safe nothrow @nogc:
 
     this(CIEChromacityCoordinate whitePoint, CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma, RCAllocator allocator) {
-        this.whitePoint = whitePoint;
         this.primaryChromacity = primaryChromacity;
         this.gammaState = gamma;
 

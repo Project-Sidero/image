@@ -23,6 +23,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
     state.name = format("cie_luv").asReadOnly;
+    state.whitePoint = Illuminants.E_2Degrees;
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
@@ -72,7 +73,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
             }
         }
 
-        return Result!CIEXYZSample(CIEXYZSample(luvToXYZ(got), Illuminants.E_2Degrees));
+        return Result!CIEXYZSample(CIEXYZSample(luvToXYZ(got), state.whitePoint));
     };
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
@@ -80,8 +81,8 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
         Vec3d got = input.sample;
 
-        if (input.whitePoint != Illuminants.E_2Degrees) {
-            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, Illuminants.E_2Degrees, ScalingMethod.Bradford);
+        if (input.whitePoint != state.whitePoint) {
+            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
 

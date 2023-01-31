@@ -9,6 +9,10 @@ import sidero.base.errors;
 
 export:
 
+/**
+ See: https://dl.acm.org/doi/abs/10.1145/965145.801296 for more information on how the image representation works
+ A language for bitmap manipulation - Guibas, Leo J. and Stolfi, Jorge
+*/
 struct ImageRef {
     ImageState* state;
 

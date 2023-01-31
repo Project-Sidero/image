@@ -96,6 +96,23 @@ struct ColorSpace {
         return (cast(ColorSpace.State*)state).channels;
     }
 
+    ///
+    bool haveChannel(scope string name) scope const @trusted {
+        foreach(channel; this.channels) {
+            if (channel.name == name)
+                return true;
+        }
+
+        return false;
+    }
+
+    ///
+    CIEChromacityCoordinate whitePoint() scope const {
+        if (state is null)
+            return typeof(return).init;
+        return state.whitePoint;
+    }
+
     /// You may not need to call this, gamma is done automatically during conversion
     double gammaApply(double input) scope const {
         if (state is null || state.gammaApply is null)
@@ -401,6 +418,7 @@ struct ColorSpace {
 
         String_UTF8 name;
         Slice!ChannelSpecification channels;
+        CIEChromacityCoordinate whitePoint;
         void function(scope const State* copyFrom, scope State* copyTo) copyModelFromTo;
         double function(double, scope const State*) gammaApply;
         double function(double, scope const State*) gammaUnapply;

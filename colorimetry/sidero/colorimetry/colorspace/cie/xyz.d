@@ -13,18 +13,9 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
     if (allocator.isNull)
         allocator = globalAllocator();
 
-    ColorSpace.State* state = ColorSpace.allocate(allocator, XYZModel.sizeof);
+    ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
     state.name = format("cieXYZ[%sx%s]", whitePoint.x, whitePoint.y).asReadOnly;
-
-    state.copyModelFromTo = (from, to) @trusted {
-        XYZModel* modelFrom = cast(XYZModel*)from.getExtraSpace().ptr;
-        XYZModel* modelTo = cast(XYZModel*)to.getExtraSpace().ptr;
-
-        *modelTo = *modelFrom;
-    };
-
-    XYZModel* model = cast(XYZModel*)state.getExtraSpace().ptr;
-    *model = XYZModel(whitePoint);
+    state.whitePoint = whitePoint;
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
@@ -40,16 +31,14 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
         channels[1] = channels[0];
         channels[2] = channels[0];
 
-        channels[0].name = model.ChannelX;
-        channels[1].name = model.ChannelY;
-        channels[2].name = model.ChannelZ;
+        channels[0].name = ChannelX;
+        channels[1].name = ChannelY;
+        channels[2].name = ChannelZ;
 
         state.channels = Slice!ChannelSpecification(channels, allocator);
     }
 
     state.toXYZ = (scope void[] input, scope const ColorSpace.State* state) nothrow @trusted {
-        XYZModel* model = cast(XYZModel*)state.getExtraSpace.ptr;
-
         Vec3d sample;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
@@ -61,11 +50,11 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
 
             double value = channel.extractSample01(input);
 
-            if (channel.name is model.ChannelX)
+            if (channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is model.ChannelY)
+            else if (channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is model.ChannelZ)
+            else if (channel.name is ChannelZ)
                 index = 2;
 
             if (index >= 0) {
@@ -73,17 +62,16 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
             }
         }
 
-        return Result!CIEXYZSample(CIEXYZSample(sample, model.whitePoint));
+        return Result!CIEXYZSample(CIEXYZSample(sample, state.whitePoint));
     };
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
         import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
-        XYZModel* model = cast(XYZModel*)state.getExtraSpace.ptr;
         Vec3d got = input.sample;
 
-        if (input.whitePoint != model.whitePoint) {
-            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, model.whitePoint, ScalingMethod.Bradford);
+        if (input.whitePoint != state.whitePoint) {
+            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
 
@@ -91,11 +79,11 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
         foreach (channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is model.ChannelX)
+            if (channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is model.ChannelY)
+            else if (channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is model.ChannelZ)
+            else if (channel.name is ChannelZ)
                 index = 2;
 
             if (output.length < channel.numberOfBytes)
@@ -114,19 +102,4 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
 }
 
 private:
-
-struct XYZModel {
-    CIEChromacityCoordinate whitePoint;
-    static ChannelX = "x", ChannelY = "y", ChannelZ = "z";
-
-@safe nothrow @nogc:
-
-    this(CIEChromacityCoordinate whitePoint) {
-        this.whitePoint = whitePoint;
-    }
-
-    this(scope ref XYZModel other) scope @trusted {
-        static foreach (i; 0 .. XYZModel.tupleof.length)
-            this.tupleof[i] = other.tupleof[i];
-    }
-}
+static ChannelX = "x", ChannelY = "y", ChannelZ = "z";

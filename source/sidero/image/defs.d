@@ -4,6 +4,7 @@ import sidero.colorimetry.colorspace;
 import sidero.colorimetry.pixel;
 import sidero.base.allocators;
 import sidero.base.errors;
+import sidero.base.attributes;
 
 export:
 
@@ -32,7 +33,7 @@ struct ImageSlice(int op) {
 
 ///
 struct Image {
-    package(sidero.image) {
+    package(sidero.image) @PrettyPrintIgnore {
         import sidero.image.internal.state;
 
         ImageRef imageRef;
@@ -58,7 +59,10 @@ export @safe nothrow @nogc:
     }
 
     ///
-    this(ColorSpace colorSpace, size_t width, size_t height, RCAllocator allocator = globalAllocator(), size_t alignment = 4) scope @trusted {
+    this(ColorSpace colorSpace, size_t width, size_t height, RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
+        if (allocator.isNull)
+            allocator = globalAllocator();
+
         imageRef = ImageRef(allocator.make!ImageState(allocator, colorSpace, cast(size_t[2])[width, height], alignment));
         this.colorSpace = colorSpace;
     }

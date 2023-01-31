@@ -257,6 +257,7 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, YCbCrModel!Gamma.sizeof);
     state.name = name;
+    state.whitePoint = whitePoint;
 
     state.copyModelFromTo = (from, to) @trusted {
         YCbCrModel!Gamma* modelFrom = cast(YCbCrModel!Gamma*)from.getExtraSpace().ptr;
@@ -359,7 +360,7 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
 
         const resultRGB = model.toRGB.dotProduct(sample);
         const resultXYZ = model.toXYZ.dotProduct(resultRGB);
-        return Result!CIEXYZSample(CIEXYZSample(resultXYZ, model.whitePoint));
+        return Result!CIEXYZSample(CIEXYZSample(resultXYZ, state.whitePoint));
     };
 
     state.fromXYZ = (scope void[] output, scope CIEXYZSample input, scope const ColorSpace.State* state) nothrow @trusted {
@@ -368,8 +369,8 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         YCbCrModel!Gamma* model = cast(YCbCrModel!Gamma*)state.getExtraSpace.ptr;
         Vec3d asRGB = model.fromXYZ.dotProduct(input.sample);
 
-        if (model.whitePoint.asXYZ != input.whitePoint.asXYZ) {
-            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, model.whitePoint, ScalingMethod.Bradford);
+        if (state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
+            const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             asRGB = adapt.dotProduct(asRGB);
         }
 
@@ -408,7 +409,6 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
 }
 
 struct YCbCrModel(Gamma) {
-    CIEChromacityCoordinate whitePoint;
     CIEChromacityCoordinate[3] primaryChromacity;
     Gamma gammaState;
 
@@ -419,7 +419,6 @@ struct YCbCrModel(Gamma) {
 @safe nothrow @nogc:
 
     this(CIEChromacityCoordinate whitePoint, CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma, RCAllocator allocator) {
-        this.whitePoint = whitePoint;
         this.primaryChromacity = primaryChromacity;
         this.gammaState = gamma;
 
