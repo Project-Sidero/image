@@ -137,6 +137,32 @@ struct Pixel {
     }
 
     ///
+    Result!double channel01(scope string name) scope @trusted {
+        size_t offset, length;
+
+        foreach (c; _colorSpace.channels) {
+            length = c.numberOfBytes;
+
+            if (c.name == name) {
+                if (this.data.length < offset + length)
+                    return typeof(return)(RangeException("Pixel data does not match channel description in length"));
+
+                void[] slice = this.data[offset .. offset + length];
+                return typeof(return)(c.extractSample01(slice));
+            }
+
+            offset += length;
+        }
+
+        return typeof(return)(MalformedInputException("No channel given name"));
+    }
+
+    ///
+    Result!CIEXYZSample asXYZ() scope @trusted {
+        return _colorSpace.toXYZ(this.data);
+    }
+
+    ///
     PixelReference swizzle(scope string names, scope Slice!ChannelSpecification auxillary = Slice!ChannelSpecification.init,
             RCAllocator allocator = RCAllocator.init) scope {
 
