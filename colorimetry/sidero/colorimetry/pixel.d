@@ -281,6 +281,14 @@ struct Pixel {
     }
 
     ///
+    void opAssign(scope CIEXYZSample cieXYZSample) scope @trusted {
+        if (isNull)
+            return;
+
+        this.colorSpace.fromXYZ(this.data, cieXYZSample);
+    }
+
+    ///
     Pixel dup(RCAllocator allocator = RCAllocator.init) scope @trusted {
         if (isNull)
             return Pixel.init;

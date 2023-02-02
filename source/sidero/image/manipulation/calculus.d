@@ -175,8 +175,39 @@ Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second
         return typeof(return)(result);
 }
 
+///
+Result!Image plusOf(scope Image first, scope Image second, scope Pixel fallbackColor, scope return RCAllocator allocator = RCAllocator.init) {
+    return plusOf(first, Image.init, second, Image.init, fallbackColor, allocator);
+}
+
+/// Ditto
+Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
+        scope Pixel fallbackColor, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+
+    import std.algorithm : max;
+
+    if (first.isNull)
+        return typeof(return)(NullPointerException("First image must not be null"));
+    else if (second.isNull)
+        return typeof(return)(NullPointerException("second image must not be null"));
+
+    size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
+            0 : secondMatte.width), resultHeight = max(first.height, second.height, firstMatte.isNull ?
+            0 : firstMatte.height, secondMatte.isNull ? 0 : secondMatte.height);
+    Image result = Image(first.colorSpace, resultWidth, resultHeight, allocator);
+
+    auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
+            double b) => 1, (double a, double b) => 1);
+
+    if (errored)
+        return typeof(return)(errored.error);
+    else
+        return typeof(return)(result);
+}
+
 private:
 
+// Implementation of: Compositing digital images https://dl.acm.org/doi/10.1145/964965.808606
 ErrorResult booleanOperation(scope Image result, scope Image first, scope Image firstMatte, scope Image second,
         scope Image secondMatte, scope Pixel fallbackColor, scope double function(double, double) @safe nothrow @nogc Fa,
         scope double function(double, double) @safe nothrow @nogc Fb) @trusted {
@@ -194,11 +225,10 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
     assert(result.height >= second.height);
     assert(result.height >= secondMatte.height);
 
-    const firstHaveAlpha = first.colorSpace.haveChannel("a"), firstNeedsMatte = !firstHaveAlpha && !firstMatte.isNull &&
+    const firstHaveAlpha = first.colorSpace.haveChannel("a"), firstNeedsMatte = !firstMatte.isNull &&
         firstMatte.colorSpace.haveChannel("Y"), firstNeedsCA = result.colorSpace.whitePoint != first.colorSpace.whitePoint,
-        secondHaveAlpha = second.colorSpace.haveChannel("a"), secondNeedsMatte = !secondHaveAlpha &&
-        !secondMatte.isNull && secondMatte.colorSpace.haveChannel("Y"),
-        secondNeedsCA = result.colorSpace.whitePoint != second.colorSpace.whitePoint;
+        secondHaveAlpha = second.colorSpace.haveChannel("a"), secondNeedsMatte = !secondMatte.isNull &&
+        secondMatte.colorSpace.haveChannel("Y"), secondNeedsCA = result.colorSpace.whitePoint != second.colorSpace.whitePoint;
 
     if (!firstHaveAlpha && !firstNeedsMatte)
         return typeof(return)(MalformedInputException(
@@ -304,7 +334,26 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         return ret;
     }
 
+    CIEXYZSample cieXYZSample;
+    cieXYZSample.whitePoint = result.colorSpace.whitePoint;
 
-    // foreach pixel, get, multiply both vectors with Fa/Fb
-    assert(0);
+    foreach (y; 0 .. result.height) {
+        foreach (x; 0 .. result.width) {
+            PixelReference output = result[x, y];
+            assert(output);
+
+            auto got = get(x, y);
+            const fa = Fa(got[0][3], got[1][3]), fb = Fb(got[0][3], got[1][3]);
+
+            got[0] *= fa;
+            got[1] *= fb;
+            cieXYZSample.sample[0] = got[0][0] + got[1][0];
+            cieXYZSample.sample[1] = got[0][1] + got[1][1];
+            cieXYZSample.sample[2] = got[0][2] + got[1][2];
+
+            output = cieXYZSample;
+        }
+    }
+
+    return typeof(return).init;
 }
