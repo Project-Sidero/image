@@ -33,11 +33,11 @@ struct ImageSlice(int op) {
 
 ///
 struct Image {
-    package(sidero.image) @PrettyPrintIgnore {
+    private @PrintIgnore @PrettyPrintIgnore {
         import sidero.image.internal.state;
 
         ImageRef imageRef;
-        ColorSpace colorSpace;
+        ColorSpace colorSpace_;
     }
 
 export @safe nothrow @nogc:
@@ -52,6 +52,10 @@ export @safe nothrow @nogc:
         imageRef = ImageRef.init;
     }
 
+    ColorSpace colorSpace() scope return {
+        return this.colorSpace_;
+    }
+
     ///
     this(scope return ref Image other) scope @trusted {
         foreach (i, v; other.tupleof)
@@ -59,12 +63,13 @@ export @safe nothrow @nogc:
     }
 
     ///
-    this(ColorSpace colorSpace, size_t width, size_t height, RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
+    this(scope return ColorSpace colorSpace, size_t width, size_t height,
+            scope return RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
         if (allocator.isNull)
             allocator = globalAllocator();
 
         imageRef = ImageRef(allocator.make!ImageState(allocator, colorSpace, cast(size_t[2])[width, height], alignment));
-        this.colorSpace = colorSpace;
+        this.colorSpace_ = colorSpace;
     }
 
     ///
@@ -180,14 +185,14 @@ export @safe nothrow @nogc:
     }
 
     ///
-    size_t width() scope {
+    size_t width() scope const {
         if (isNull)
             return 0;
         return imageRef.width;
     }
 
     ///
-    size_t height() scope {
+    size_t height() scope const {
         if (isNull)
             return 0;
         return imageRef.height;
@@ -259,7 +264,7 @@ export @safe nothrow @nogc:
 
         Image ret;
         ret.imageRef = imageRef.dup(allocator, -1, keepOldMetaData);
-        ret.colorSpace = this.colorSpace;
+        ret.colorSpace_ = this.colorSpace;
 
         return ret;
     }
@@ -271,7 +276,7 @@ export @safe nothrow @nogc:
 
         Image ret;
         ret.imageRef = imageRef.dup(newColorSpace, allocator, -1, keepOldMetaData);
-        ret.colorSpace = newColorSpace;
+        ret.colorSpace_ = newColorSpace;
 
         return ret;
     }
@@ -283,7 +288,7 @@ export @safe nothrow @nogc:
 
         Image ret;
         ret.imageRef = ImageRef(imageRef.state);
-        ret.colorSpace = this.colorSpace;
+        ret.colorSpace_ = this.colorSpace;
 
         return ret;
     }

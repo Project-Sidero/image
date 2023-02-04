@@ -51,7 +51,7 @@ struct CIExyYSample {
 
 ///
 struct ColorSpace {
-    private {
+    private @PrintIgnore @PrettyPrintIgnore {
         import core.atomic : atomicLoad, atomicOp;
 
         State* state;

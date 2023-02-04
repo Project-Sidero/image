@@ -31,7 +31,7 @@ export @safe nothrow @nogc:
 
     @disable auto opCast(T)();
 
-    this(ImageState* state) scope {
+    this(scope return ImageState* state) scope {
         import core.atomic : atomicOp;
 
         atomicOp!"+="(state.refCount, 1);
@@ -188,8 +188,8 @@ export @safe nothrow @nogc:
             return typeof(return).init;
 
         Image ret;
-        ret.imageRef = this;
-        ret.colorSpace = state.colorSpace;
+        ret.tupleof[0] = this;
+        ret.tupleof[1] = state.colorSpace;
 
         return ImageMetaData!Type(this.state.acquireMetaData!Type, ret);
     }
