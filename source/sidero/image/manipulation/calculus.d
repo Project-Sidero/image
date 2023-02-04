@@ -14,10 +14,10 @@ struct Sum {
     Op op;
 
     Image[] images;
-    float[] intensities;
+    double[] intensities;
 
     bool average;
-    float sumIntensity;
+    double sumIntensity;
 
     enum Op {
         Set,
@@ -206,6 +206,112 @@ Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image secon
 }
 
 private:
+import sidero.base.containers.dynamicarray;
+
+ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[] images, scope double[] intensities,
+        bool average, double sumIntensity) @trusted {
+    import sidero.colorimetry.colorspace.cie.chromaticadaption;
+    import std.math : isInfinity, isNaN;
+
+    if (images.length == 0)
+        return typeof(return).init;
+
+    {
+        assert(!result.isNull);
+
+        foreach (image; images) {
+            if (image.isNull)
+                return typeof(return)(NullPointerException("All images must be non-null"));
+            else if (image.width < result.width || image.height < result.height)
+                return typeof(return)(MalformedInputException("Input images must be equal to or smaller than result image"));
+        }
+
+        foreach (intensity; intensities) {
+            if (isInfinity(intensity) || isNaN(intensity))
+                return typeof(return)(MalformedInputException("No intensity may be NaN or infinite"));
+        }
+    }
+
+    if (average)
+        sumIntensity *= 1f / images.length;
+
+    auto targetWhitePoint = result.colorSpace.whitePoint;
+
+    static struct CAv {
+        bool need;
+        Mat3x3d matrix;
+    }
+
+    DynamicArray!CAv needCA;
+
+    {
+        needCA.reserve(images.length);
+
+        foreach (image; images) {
+            auto imageWP = image.colorSpace.whitePoint;
+            bool need = targetWhitePoint != imageWP;
+
+            if (need) {
+                needCA ~= CAv(true, matrixForChromaticAdaptionXYZToXYZ(imageWP, targetWhitePoint, ScalingMethod.Bradford));
+            } else
+                needCA ~= CAv(false);
+        }
+    }
+
+    CIEXYZSample cieXYZSample;
+    cieXYZSample.whitePoint = result.colorSpace.whitePoint;
+
+    void fillInSamples(size_t x, size_t y) {
+        cieXYZSample.sample = 0;
+
+        foreach (imageI, image; images) {
+            auto got = image[x, y];
+            assert(got);
+
+            CIEXYZSample temp = got.asXYZ.assumeOkay;
+
+            {
+                auto imageCAv = needCA[imageI];
+
+                if (imageCAv.need)
+                    temp.sample = imageCAv.matrix.dotProduct(temp.sample);
+            }
+
+            if (imageI < intensities.length)
+                temp.sample *= intensities[imageI];
+
+            cieXYZSample.sample += temp.sample;
+        }
+
+        cieXYZSample.sample *= sumIntensity;
+    }
+
+    if (addNotSet) {
+        foreach (y; 0 .. result.height) {
+            foreach (x; 0 .. result.width) {
+                PixelReference output = result[x, y];
+                assert(output);
+
+                fillInSamples(x, y);
+
+                cieXYZSample.sample += output.asXYZ.assumeOkay.sample;
+                output = cieXYZSample;
+            }
+        }
+    } else {
+        foreach (y; 0 .. result.height) {
+            foreach (x; 0 .. result.width) {
+                PixelReference output = result[x, y];
+                assert(output);
+
+                fillInSamples(x, y);
+                output = cieXYZSample;
+            }
+        }
+    }
+
+    return typeof(return).init;
+}
 
 // Implementation of: Compositing digital images https://dl.acm.org/doi/10.1145/964965.808606
 ErrorResult booleanOperation(scope Image result, scope Image first, scope Image firstMatte, scope Image second,
