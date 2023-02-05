@@ -31,7 +31,7 @@ export @safe nothrow @nogc:
 
     @disable auto opCast(T)();
 
-    this(scope return ImageState* state) scope {
+    this(return scope ImageState* state) scope {
         import core.atomic : atomicOp;
 
         atomicOp!"+="(state.refCount, 1);
@@ -44,7 +44,7 @@ export @safe nothrow @nogc:
         this.height = state.height;
     }
 
-    this(scope return ref ImageRef other) scope @trusted {
+    this(return scope ref ImageRef other) scope @trusted {
         foreach (i, v; other.tupleof)
             this.tupleof[i] = v;
 
@@ -455,7 +455,7 @@ struct MetaDataStorage {
 
 export @safe nothrow @nogc:
 
-    this(RCAllocator allocator, scope return void[] data, scope return OnDeallocate onDeallocateDel) scope @trusted {
+    this(RCAllocator allocator, return scope void[] data, return scope OnDeallocate onDeallocateDel) scope @trusted {
         this.allocator = allocator;
         this.data = data;
         this.onDeallocateDel = onDeallocateDel;

@@ -57,14 +57,14 @@ export @safe nothrow @nogc:
     }
 
     ///
-    this(scope return ref Image other) scope @trusted {
+    this(return scope ref Image other) scope @trusted {
         foreach (i, v; other.tupleof)
             this.tupleof[i] = v;
     }
 
     ///
-    this(scope return ColorSpace colorSpace, size_t width, size_t height,
-            scope return RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
+    this(return scope ColorSpace colorSpace, size_t width, size_t height,
+            return scope RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
         if (allocator.isNull)
             allocator = globalAllocator();
 

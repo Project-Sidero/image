@@ -55,7 +55,7 @@ struct Pixel {
     }
 
     ///
-    this(scope return void[] data, ColorSpace colorSpace, scope return void* user, scope return RCHandle rcHandle) scope @trusted {
+    this(return scope void[] data, ColorSpace colorSpace, return scope void* user, return scope RCHandle rcHandle) scope @trusted {
         assert(data !is null);
 
         this.data = data;
@@ -65,7 +65,7 @@ struct Pixel {
     }
 
     ///
-    this(scope return ColorSpace colorSpace, RCAllocator allocator = RCAllocator.init) scope @trusted {
+    this(return scope ColorSpace colorSpace, RCAllocator allocator = RCAllocator.init) scope @trusted {
         if (colorSpace.isNull)
             return;
         if (allocator.isNull)

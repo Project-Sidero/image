@@ -11,16 +11,16 @@ export @safe nothrow @nogc:
 
 /// output = sum(intensity1 * image1, intensity2 * image2, ...) * sumIntensity
 Result!Image sumOf(scope Image[] images, scope double[] intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, images, intensities, sumIntensity, false, fallbackColor, colorSpace, allocator);
 }
 
 /// Ditto
 Result!Image sumOf(scope Slice!Image images, scope Slice!double intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
             false, fallbackColor, colorSpace, allocator);
@@ -28,8 +28,8 @@ Result!Image sumOf(scope Slice!Image images, scope Slice!double intensities, dou
 
 /// Ditto
 Result!Image sumOf(scope DynamicArray!Image images, scope DynamicArray!double intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
             false, fallbackColor, colorSpace, allocator);
@@ -37,16 +37,16 @@ Result!Image sumOf(scope DynamicArray!Image images, scope DynamicArray!double in
 
 /// output = average(intensity1 * image1, intensity2 * image2, ...) * sumIntensity
 Result!Image averageOf(scope Image[] images, scope double[] intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, images, intensities, sumIntensity, true, fallbackColor, colorSpace, allocator);
 }
 
 /// Ditto
 Result!Image averageOf(scope Slice!Image images, scope Slice!double intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity, true,
             fallbackColor, colorSpace, allocator);
@@ -54,8 +54,8 @@ Result!Image averageOf(scope Slice!Image images, scope Slice!double intensities,
 
 /// Ditto
 Result!Image averageOf(scope DynamicArray!Image images, scope DynamicArray!double intensities, double sumIntensity,
-        scope Pixel fallbackColor = Pixel.init, scope return ColorSpace colorSpace = ColorSpace.init,
-        scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
+        return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
             false, fallbackColor, colorSpace, allocator);
@@ -63,13 +63,13 @@ Result!Image averageOf(scope DynamicArray!Image images, scope DynamicArray!doubl
 
 ///
 Result!Image overOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return overOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image overOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -94,13 +94,13 @@ Result!Image overOf(scope Image first, scope Image firstMatte, scope Image secon
 
 ///
 Result!Image inOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return inOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image inOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -125,13 +125,13 @@ Result!Image inOf(scope Image first, scope Image firstMatte, scope Image second,
 
 ///
 Result!Image outOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return outOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image outOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -156,13 +156,13 @@ Result!Image outOf(scope Image first, scope Image firstMatte, scope Image second
 
 ///
 Result!Image atopOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return atopOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image atopOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -187,13 +187,13 @@ Result!Image atopOf(scope Image first, scope Image firstMatte, scope Image secon
 
 ///
 Result!Image xorOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return xorOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -218,13 +218,13 @@ Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second
 
 ///
 Result!Image plusOf(scope Image first, scope Image second, scope Pixel fallbackColor = Pixel.init,
-        scope return RCAllocator allocator = RCAllocator.init) {
+        return scope RCAllocator allocator = RCAllocator.init) {
     return plusOf(first, Image.init, second, Image.init, fallbackColor, allocator);
 }
 
 /// Ditto
 Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image second, scope Image secondMatte,
-        scope Pixel fallbackColor = Pixel.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        scope Pixel fallbackColor = Pixel.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
     import std.algorithm : max;
 
@@ -251,7 +251,7 @@ private:
 
 Result!Image arithmeticOperationWrapper(bool addNotSet, scope Image[] images, scope const double[] intensities,
         double sumIntensity, bool average, scope Pixel fallbackColor = Pixel.init,
-        scope return ColorSpace colorSpace = ColorSpace.init, scope return RCAllocator allocator = RCAllocator.init) @trusted {
+        return scope ColorSpace colorSpace = ColorSpace.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
     import std.math : isInfinity, isNaN;
 
     if (images.length == 0)
@@ -287,7 +287,7 @@ Result!Image arithmeticOperationWrapper(bool addNotSet, scope Image[] images, sc
 }
 
 ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[] images,
-        scope const double[] intensities, bool average, double sumIntensity, scope Pixel fallbackColor, scope return RCAllocator allocator) @trusted {
+        scope const double[] intensities, bool average, double sumIntensity, scope Pixel fallbackColor, return scope RCAllocator allocator) @trusted {
     import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
     if (result.isNull || images.length == 0)
