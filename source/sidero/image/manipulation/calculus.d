@@ -87,7 +87,7 @@ Result!Image overOf(scope Image first, scope Image firstMatte, scope Image secon
             double b) => 1, (double a, double b) => 1 - a);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -118,7 +118,7 @@ Result!Image inOf(scope Image first, scope Image firstMatte, scope Image second,
             double b) => b, (double a, double b) => 0);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -149,7 +149,7 @@ Result!Image outOf(scope Image first, scope Image firstMatte, scope Image second
             double b) => 1 - b, (double a, double b) => 0);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -180,7 +180,7 @@ Result!Image atopOf(scope Image first, scope Image firstMatte, scope Image secon
             double b) => b, (double a, double b) => 1 - a);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -211,7 +211,7 @@ Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second
             double b) => 1 - b, (double a, double b) => 1 - a);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -242,7 +242,7 @@ Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image secon
             double b) => 1, (double a, double b) => 1);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }
@@ -281,7 +281,7 @@ Result!Image arithmeticOperationWrapper(bool addNotSet, scope Image[] images, sc
     auto errored = arithmeticOperation(result, addNotSet, images, intensities, average, sumIntensity, fallbackColor, allocator);
 
     if (errored)
-        return typeof(return)(errored.error);
+        return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
 }

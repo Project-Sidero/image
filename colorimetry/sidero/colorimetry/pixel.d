@@ -209,7 +209,7 @@ struct Pixel {
         if (result)
             return typeof(return)(ret);
         else
-            return typeof(return)(result.error);
+            return typeof(return)(result.getError);
     }
 
     ///
@@ -220,11 +220,11 @@ struct Pixel {
         {
             auto asXYZ = _colorSpace.toXYZ(data);
             if (!asXYZ)
-                return typeof(return)(asXYZ.error);
+                return typeof(return)(asXYZ.getError);
 
             auto result = pixel.colorSpace.fromXYZ(pixel.data, asXYZ.get);
             if (!result)
-                return typeof(return)(result.error);
+                return typeof(return)(result.getError);
         }
 
         {

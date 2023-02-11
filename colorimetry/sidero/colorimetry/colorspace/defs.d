@@ -79,6 +79,10 @@ struct ColorSpace {
         return state is null;
     }
 
+    void opAssign(return scope ColorSpace other) scope {
+        this.__ctor(other);
+    }
+
     ///
     alias toString = name;
 
