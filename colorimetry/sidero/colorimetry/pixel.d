@@ -185,7 +185,7 @@ struct Pixel {
     }
 
     ///
-    PixelReference swizzle(scope string names, scope Slice!ChannelSpecification auxillary = Slice!ChannelSpecification.init,
+    PixelReference swizzle(scope string names, scope Slice!ChannelSpecification auxiliary = Slice!ChannelSpecification.init,
             RCAllocator allocator = RCAllocator.init) scope {
 
         if (isNull)
@@ -193,7 +193,7 @@ struct Pixel {
         if (allocator.isNull)
             allocator = globalAllocator();
 
-        ColorSpace newColorSpace = this._colorSpace.withChannels(names, auxillary, allocator);
+        ColorSpace newColorSpace = this._colorSpace.withChannels(names, auxiliary, allocator);
         Pixel ret = Pixel(newColorSpace, allocator);
 
         void[] tempOutput = ret.data;
@@ -256,7 +256,7 @@ struct Pixel {
             foreach (fromChannel; fromChannels) {
                 double got = fromChannel.extractSample01(from);
 
-                if (fromChannel.isAuxillary) {
+                if (fromChannel.isAuxiliary) {
                     auto tempChannels = intoChannels;
                     void[] tempInto = into;
 

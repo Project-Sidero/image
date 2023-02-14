@@ -114,10 +114,10 @@ Result!Image scale(scope Image source, double xScale, double yScale, return scop
 
     Image ret = Image(colorSpace, cast(size_t)newWidth, cast(size_t)newHeight, allocator);
 
-    void fillInAuxillary(scope ref Pixel output, scope ref PixelReference firstPixel, scope ref PixelReference secondPixel,
+    void fillInAuxiliary(scope ref Pixel output, scope ref PixelReference firstPixel, scope ref PixelReference secondPixel,
             double ratio1, double ratio2) {
         foreach (c; colorSpace.channels) {
-            if (!c.isAuxillary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+            if (!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
                 continue;
 
             bool gotOne;
@@ -179,7 +179,7 @@ Result!Image scale(scope Image source, double xScale, double yScale, return scop
                 dest = temp;
             }
 
-            fillInAuxillary(dest, firstPixel, secondPixel, firstRatio, secondRatio);
+            fillInAuxiliary(dest, firstPixel, secondPixel, firstRatio, secondRatio);
         }
     }
 

@@ -377,9 +377,9 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
             cieXYZSample.sample = fallbackXYZ;
     }
 
-    void fillInAuxillary(scope ref Pixel output, size_t x, size_t y) {
+    void fillInAuxiliary(scope ref Pixel output, size_t x, size_t y) {
         foreach (c; result.colorSpace.channels) {
-            if (!c.isAuxillary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+            if (!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
                 continue;
 
             bool gotOne;
@@ -414,7 +414,7 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 assert(output);
 
                 fillInSamples(x, y);
-                fillInAuxillary(output.get, x, y);
+                fillInAuxiliary(output.get, x, y);
 
                 cieXYZSample.sample += output.asXYZ.assumeOkay.sample;
                 output = cieXYZSample;
@@ -427,7 +427,7 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 assert(output);
 
                 fillInSamples(x, y);
-                fillInAuxillary(output.get, x, y);
+                fillInAuxiliary(output.get, x, y);
                 output = cieXYZSample;
             }
         }
@@ -563,9 +563,9 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         return ret;
     }
 
-    void fillInAuxillary(scope ref Pixel output, size_t x, size_t y) {
+    void fillInAuxiliary(scope ref Pixel output, size_t x, size_t y) {
         foreach (c; result.colorSpace.channels) {
-            if (!c.isAuxillary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+            if (!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
                 continue;
 
             bool gotOne;
@@ -608,7 +608,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
             cieXYZSample.sample[2] = got[0][2] + got[1][2];
 
             output = cieXYZSample;
-            fillInAuxillary(output, x, y);
+            fillInAuxiliary(output, x, y);
         }
     }
 
