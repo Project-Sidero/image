@@ -183,7 +183,7 @@ Result!Image scale(scope Image source, double xScale, double yScale, return scop
         }
     }
 
-    assert(0);
+    return typeof(return)(ret);
 }
 
 ///
