@@ -22,8 +22,8 @@ Result!Image sumOf(scope Slice!Image images, scope Slice!double intensities, dou
         scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
         return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
-    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
-            false, fallbackColor, colorSpace, allocator);
+    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral,
+            sumIntensity, false, fallbackColor, colorSpace, allocator);
 }
 
 /// Ditto
@@ -31,8 +31,8 @@ Result!Image sumOf(scope DynamicArray!Image images, scope DynamicArray!double in
         scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
         return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
-    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
-            false, fallbackColor, colorSpace, allocator);
+    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral,
+            sumIntensity, false, fallbackColor, colorSpace, allocator);
 }
 
 /// output = average(intensity1 * image1, intensity2 * image2, ...) * sumIntensity
@@ -48,8 +48,8 @@ Result!Image averageOf(scope Slice!Image images, scope Slice!double intensities,
         scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
         return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
-    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity, true,
-            fallbackColor, colorSpace, allocator);
+    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral,
+            sumIntensity, true, fallbackColor, colorSpace, allocator);
 }
 
 /// Ditto
@@ -57,8 +57,8 @@ Result!Image averageOf(scope DynamicArray!Image images, scope DynamicArray!doubl
         scope Pixel fallbackColor = Pixel.init, return scope ColorSpace colorSpace = ColorSpace.init,
         return scope RCAllocator allocator = RCAllocator.init) @trusted {
 
-    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral, sumIntensity,
-            false, fallbackColor, colorSpace, allocator);
+    return arithmeticOperationWrapper(false, cast(Image[])images.unsafeGetLiteral, intensities.unsafeGetLiteral,
+            sumIntensity, false, fallbackColor, colorSpace, allocator);
 }
 
 ///
@@ -286,8 +286,8 @@ Result!Image arithmeticOperationWrapper(bool addNotSet, scope Image[] images, sc
         return typeof(return)(result);
 }
 
-ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[] images,
-        scope const double[] intensities, bool average, double sumIntensity, scope Pixel fallbackColor, return scope RCAllocator allocator) @trusted {
+ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[] images, scope const double[] intensities,
+        bool average, double sumIntensity, scope Pixel fallbackColor, return scope RCAllocator allocator) @trusted {
     import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
     if (result.isNull || images.length == 0)
@@ -377,6 +377,36 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
             cieXYZSample.sample = fallbackXYZ;
     }
 
+    void fillInAuxillary(scope ref Pixel output, size_t x, size_t y) {
+        foreach (c; result.colorSpace.channels) {
+            if (!c.isAuxillary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+                continue;
+
+            bool gotOne;
+            double temp = 0;
+
+            foreach (imageI, image; images) {
+                auto got = image[x, y];
+                if (!got)
+                    continue;
+
+                auto got2 = got.channel01(c.name);
+                if (got2) {
+                    if (intensities.length > imageI)
+                        temp += got2.get * intensities[imageI];
+                    else
+                        temp += got2.get;
+                    gotOne = true;
+                }
+            }
+
+            if (gotOne) {
+                temp *= sumIntensity;
+                output.channel01(c.name, temp);
+            }
+        }
+    }
+
     if (addNotSet) {
         foreach (y; 0 .. result.height) {
             foreach (x; 0 .. result.width) {
@@ -384,6 +414,7 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 assert(output);
 
                 fillInSamples(x, y);
+                fillInAuxillary(output.get, x, y);
 
                 cieXYZSample.sample += output.asXYZ.assumeOkay.sample;
                 output = cieXYZSample;
@@ -396,6 +427,7 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 assert(output);
 
                 fillInSamples(x, y);
+                fillInAuxillary(output.get, x, y);
                 output = cieXYZSample;
             }
         }
@@ -531,6 +563,33 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         return ret;
     }
 
+    void fillInAuxillary(scope ref Pixel output, size_t x, size_t y) {
+        foreach (c; result.colorSpace.channels) {
+            if (!c.isAuxillary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+                continue;
+
+            bool gotOne;
+            double temp = 0;
+
+            foreach (imageI, image; [first, second]) {
+                auto got = image[x, y];
+                if (!got)
+                    continue;
+
+                auto got2 = got.channel01(c.name);
+                if (got2) {
+                    temp += got2.get;
+                    gotOne = true;
+                }
+            }
+
+            if (gotOne) {
+                temp /= 2;
+                output.channel01(c.name, temp);
+            }
+        }
+    }
+
     CIEXYZSample cieXYZSample;
     cieXYZSample.whitePoint = result.colorSpace.whitePoint;
 
@@ -549,6 +608,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
             cieXYZSample.sample[2] = got[0][2] + got[1][2];
 
             output = cieXYZSample;
+            fillInAuxillary(output, x, y);
         }
     }
 

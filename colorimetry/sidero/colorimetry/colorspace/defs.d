@@ -474,8 +474,19 @@ struct ChannelSpecification {
     bool clampMinimum, clampMaximum;
     ///
     bool wrapAroundMinimum, wrapAroundMaximum;
+    ///
+    BlendMode blendMode;
 
-    package(sidero.colorimetry) bool isAuxillary;
+    /// Will be set by colorspace automatically
+    bool isAuxillary;
+
+    ///
+    enum BlendMode {
+        ///
+        ExactOrDefaultOnly,
+        ///
+        Proportional
+    }
 
 @safe nothrow pure @nogc const:
 
