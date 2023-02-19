@@ -186,13 +186,111 @@ Result!Image scale(scope Image source, double xScale, double yScale, return scop
     return typeof(return)(ret);
 }
 
-///
-Result!Image rotate(scope Image source, double angle, size_t centerX, size_t centerY, scope Pixel fallbackColor = Pixel.init,
-        return scope ColorSpace colorSpace = ColorSpace.init, return scope RCAllocator allocator = RCAllocator.init) {
+/// Positive angle is clockwise, no interpolation point-by-point transformation via shear, uses center as pivot point
+Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallbackColor = Pixel.init,
+        return scope ColorSpace colorSpace = ColorSpace.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
+    import sidero.base.math.linear_algebra;
+    import sidero.base.math.utils : floor;
+    import std.math : cos, sin, tan, isNaN, isInfinity;
 
-    // new_width = abs(old_width * cos(angle)) + abs(old_height * sin(angle))
-    // new_height = abs(old_height * cos(angle)) + abs(old_width * sin(angle))
+    if (source.isNull)
+        return typeof(return)(NullPointerException("Input image is null"));
+    else if (isNaN(radianAngle) || isInfinity(radianAngle))
+        return typeof(return)(
+                MalformedInputException("Angle of ration should be limited between -2PI and 2PI (radians), not infinity or NaN"));
 
-    // use three shear method: https://www.sciencedirect.com/science/article/pii/S1077316997904202 https://datagenetics.com/blog/august32013/index.html
-    assert(0);
+    if (colorSpace.isNull)
+        colorSpace = source.colorSpace;
+
+    // Our goal here is to do a point-by-point rotation, without interpolation
+    //  this is actually pretty easy to do, but we're gonna switch it up a bit
+    //  we'll do it from the output pixel rather than the input.
+    // This may not make a whole lot of sense at first, but the goal is to prevent aliasing.
+
+    alias M = Mat2x2d, Vd = Vec2d, Vi = Vector!(size_t, 2);
+
+    const cosAngle = cos(radianAngle), sinAngle = sin(radianAngle), tanAngle = tan(radianAngle / 2);
+    const originalSize = Vd(5, 5), newSize = () {
+        const m1 = M(cosAngle, -sinAngle, sinAngle, cosAngle), m2 = M(-cosAngle, -sinAngle, -sinAngle, cosAngle);
+        const v1 = m1.dotProduct(originalSize), v2 = m2.dotProduct(originalSize);
+        return cast(Vd)cast(Vi)(vector.max(v1.abs, v2.abs));
+    }(), offset = (newSize - originalSize) / 2, newOrigin = newSize / 2, oldOrigin = originalSize / 2;
+
+    Image result = Image(colorSpace, cast(size_t)newSize[0], cast(size_t)newSize[1], allocator);
+
+    Vd shear(Vd input) {
+        Vd ret = Vd(floor(input[0] - input[1] * tanAngle), input[1]);
+        ret[1] = floor(ret[0] * sinAngle + ret[1]);
+        ret[0] = floor(ret[0] - ret[1] * tanAngle);
+        return ret;
+    }
+
+    if (!fallbackColor.isNull) {
+        foreach (y; 0 .. newSize[1]) {
+            foreach (x; 0 .. newSize[0]) {
+                auto output = result[cast(size_t)x, cast(size_t)y];
+                if (!output)
+                    return typeof(return)(output.getError());
+
+                fallbackColor.convertInto(output);
+            }
+        }
+    }
+
+    foreach (y; offset[1] .. originalSize[1] + offset[1]) {
+        if (!fallbackColor.isNull) {
+            foreach (x; 0 .. offset[0]) {
+                auto output = result[cast(size_t)x, cast(size_t)y];
+                if (!output)
+                    return typeof(return)(output.getError());
+
+                fallbackColor.convertInto(output);
+            }
+        }
+
+        foreach (x; offset[0] .. originalSize[0] + offset[0]) {
+            auto output = result[cast(size_t)x, cast(size_t)y];
+            if (!output)
+                return typeof(return)(output.getError());
+
+            const cPoint = Vd(x, y), oldLoc = (newSize - 1) - cPoint - newOrigin, newLoc = oldOrigin - shear(oldLoc);
+
+            if (newLoc[0] < 0 || newLoc[1] < 0 || newLoc[0] >= originalSize[0] || newLoc[1] >= originalSize[1]) {
+                if (!fallbackColor.isNull)
+                    fallbackColor.convertInto(output);
+            } else {
+                const newLoc2 = cast(Vector!(size_t, 2))newLoc;
+
+                auto got = source[newLoc2[0], newLoc2[1]];
+                if (!got)
+                    return typeof(return)(got.getError());
+
+                got.convertInto(output);
+            }
+        }
+
+        if (!fallbackColor.isNull) {
+            foreach (x; originalSize[0] + offset[0] .. newSize[0]) {
+                auto output = result[cast(size_t)x, cast(size_t)y];
+                if (!output)
+                    return typeof(return)(output.getError());
+
+                fallbackColor.convertInto(output);
+            }
+        }
+    }
+
+    if (!fallbackColor.isNull) {
+        foreach (y; originalSize[1] + offset[1] .. newSize[1]) {
+            foreach (x; 0 .. newSize[0]) {
+                auto output = result[cast(size_t)x, cast(size_t)y];
+                if (!output)
+                    return typeof(return)(output.getError());
+
+                fallbackColor.convertInto(output);
+            }
+        }
+    }
+
+    return result;
 }
