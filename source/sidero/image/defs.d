@@ -219,7 +219,7 @@ export @safe nothrow @nogc:
     }
 
     ///
-    Result!Image opIndex(ImageSlice!0 x, ImageSlice!1 y) scope @trusted {
+    Result!Image opIndex(ImageSlice!0 x, ImageSlice!1 y) scope return @trusted {
         if (isNull)
             return typeof(return)(NullPointerException);
 

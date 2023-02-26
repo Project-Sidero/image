@@ -377,7 +377,8 @@ Vec3d luvToXYZ(Vec3d input) {
     const valX = (d - b) / (a - c);
     const valZ = valX * a + b;
 
-    return Vec3d(valX, valY, valZ);
+    const ret = Vec3d(valX, valY, valZ);
+    return ret;
 }
 
 Vec3d xyzToLuv(Vec3d input) {
@@ -399,5 +400,6 @@ Vec3d xyzToLuv(Vec3d input) {
     const vr = (9 * whitePoint[1]) / uvr;
 
     const valL = yr > e ? (116 * pow(yr, (1 / 3f)) - 16) : (k * yr);
-    return Vec3d(valL, 13 * valL * (u - ur), 13 * valL * (v - vr));
+    const ret = Vec3d(valL, 13 * valL * (u - ur), 13 * valL * (v - vr));
+    return ret;
 }

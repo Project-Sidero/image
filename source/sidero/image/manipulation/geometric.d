@@ -191,7 +191,8 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
         return scope ColorSpace colorSpace = ColorSpace.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.math.linear_algebra;
     import sidero.base.math.utils : floor;
-    import std.math : cos, sin, tan, isNaN, isInfinity;
+    import std.math : isNaN, isInfinity;
+    import core.stdc.math : sin, cos, tan;
 
     if (source.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
@@ -210,10 +211,11 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
     alias M = Mat2x2d, Vd = Vec2d, Vi = Vector!(size_t, 2);
 
     const cosAngle = cos(radianAngle), sinAngle = sin(radianAngle), tanAngle = tan(radianAngle / 2);
-    const originalSize = Vd(5, 5), newSize = () {
+    const originalSize = Vd(source.width, source.height), newSize = () {
         const m1 = M(cosAngle, -sinAngle, sinAngle, cosAngle), m2 = M(-cosAngle, -sinAngle, -sinAngle, cosAngle);
         const v1 = m1.dotProduct(originalSize), v2 = m2.dotProduct(originalSize);
-        return cast(Vd)cast(Vi)(vector.max(v1.abs, v2.abs));
+        const ret = cast(Vd)cast(Vi)(vector.max(v1.abs, v2.abs));
+        return ret;
     }(), offset = (newSize - originalSize) / 2, newOrigin = newSize / 2, oldOrigin = originalSize / 2;
 
     Image result = Image(colorSpace, cast(size_t)newSize[0], cast(size_t)newSize[1], allocator);

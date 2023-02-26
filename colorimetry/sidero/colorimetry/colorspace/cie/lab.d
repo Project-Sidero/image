@@ -386,5 +386,6 @@ Vec3d xyzToLab(Vec3d input) {
     const fy = fc[1] > e ? fc[1] : ((k * xyzr[1] + 16) / 116);
     const fz = fc[2] > e ? fc[2] : ((k * xyzr[2] + 16) / 116);
 
-    return Vec3d(116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz));
+    const ret = Vec3d(116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz));
+    return ret;
 }

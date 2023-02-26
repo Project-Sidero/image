@@ -466,7 +466,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         return typeof(return)(MalformedInputException(
                 "Boolean operations on images require some sort of matte in either explicit with Y channel or alpha (second)"));
 
-    Vec3d fallbackXYZ; // default is black when Y = 0
+    Vec3d fallbackXYZ = void; // default is black when Y = 0
 
     if (!fallbackColor.isNull) {
         auto got = fallbackColor.asXYZ;
@@ -480,7 +480,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
                 result.colorSpace.whitePoint, ScalingMethod.Bradford) : Mat3x3d.init;
 
     Vec4d[2] get(size_t x, size_t y) {
-        Vec4d[2] ret;
+        Vec4d[2] ret = void;
 
         {
             auto pixel = first[x, y];
@@ -590,7 +590,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         }
     }
 
-    CIEXYZSample cieXYZSample;
+    CIEXYZSample cieXYZSample = void;
     cieXYZSample.whitePoint = result.colorSpace.whitePoint;
 
     foreach (y; 0 .. result.height) {
