@@ -398,6 +398,8 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
 
     if (source.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
+    else if (constant.isNull)
+        return typeof(return)(NullPointerException("Input constant pixel is null"));
     else {
         foreach (v; filter.data) {
             if (isInfinity(v) || isNaN(v))
@@ -408,6 +410,13 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
     if (colorSpace.isNull)
         colorSpace = source.colorSpace;
 
+    if (constant.colorSpace != source.colorSpace) {
+        auto got = constant.convertTo(source.colorSpace);
+        if (!got)
+            return typeof(return)(got.getError());
+        constant = got.get;
+    }
+
     const deltaFx = -cast(ptrdiff_t)(filter.width / 2), deltaFy = -cast(ptrdiff_t)(filter.height / 2);
     size_t startX, startY, actualWidth = source.width, actualHeight = source.height, endX = startX + actualWidth,
         endY = startY + actualHeight;
@@ -416,7 +425,7 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
 
     PixelReference acquirePixel(ptrdiff_t x, ptrdiff_t y) @trusted {
         if (x < 0 || y < 0 || x >= endX || y >= endY)
-            return PixelReference.init;
+            return PixelReference(constant);
         return source[x, y];
     }
 
