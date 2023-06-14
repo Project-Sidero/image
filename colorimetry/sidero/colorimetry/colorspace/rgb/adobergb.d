@@ -18,11 +18,11 @@ ColorSpace adobeRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false) 
 
     if (isLinear) {
         auto gamma = GammaNone.init;
-        auto name = format("AdobeRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = formattedWrite("AdobeRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, AdobeRGBChromacities, GammaNone.init, RCAllocator.init, name);
     } else {
         auto gamma = GammaPower(2.19921875);
-        auto name = format("AdobeRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = formattedWrite("AdobeRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, AdobeRGBChromacities, gamma, RCAllocator.init, name);
     }
 }

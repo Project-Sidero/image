@@ -14,7 +14,7 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         String_UTF8 name = String_UTF8.init) @trusted {
 
     if (name.isNull) {
-        name = format("rgb_%s%s[%sx%s][r:%sx%s, g:%sx%s, b:%sx%s]%s", channelBitCount, isFloat ? "f" : "", whitePoint.x,
+        name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "", whitePoint.x,
                 whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
                 primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
     }
@@ -35,7 +35,7 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
     ColorSpace.State* state = ColorSpace.allocate(allocator, RGBModel!Gamma.sizeof);
 
     if (name.isNull) {
-        state.name = format("rgb_%s%s[%sx%s][r:%sx%s, g:%sx%s, b:%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+        state.name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 whitePoint.x, whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
                 primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
     } else {

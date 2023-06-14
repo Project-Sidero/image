@@ -90,15 +90,15 @@ ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false, bool
 
     if (isLinear) {
         auto gamma = GammaNone.init;
-        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = formattedWrite("sRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaNone.init, RCAllocator.init, name);
     } else if (approxGamma) {
         auto gamma = GammaPower(2.2);
-        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = formattedWrite("sRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
     } else {
         auto gamma = sRGBGamma.init;
-        auto name = format("sRGB_%s%s%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        auto name = formattedWrite("sRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!sRGBGamma(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
     }
 }
@@ -114,7 +114,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        pixel.set(0.8, 0.85, 0.9);
+        cast(void)pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -163,7 +163,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        pixel.set(0.8, 0.85, 0.9);
+        cast(void)pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -212,7 +212,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        pixel.set(0.8, 0.85, 0.9);
+        cast(void)pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -265,7 +265,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        pixel.set(231, 237, 243);
+        cast(void)pixel.set(231, 237, 243);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);
@@ -313,7 +313,7 @@ unittest {
     Pixel pixel = Pixel(colorSpace);
 
     {
-        pixel.set(0.8, 0.85, 0.9);
+        cast(void)pixel.set(0.8, 0.85, 0.9);
     }
 
     auto gotXYZ = pixel.convertTo(asColorSpace);

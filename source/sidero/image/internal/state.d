@@ -318,7 +318,7 @@ export @safe nothrow @nogc:
 
                         Pixel destinationPixel = Pixel(pixelInto, ret.colorSpace, null, null),
                             sourcePixel = Pixel(pixelFrom, this.colorSpace, null, null);
-                        sourcePixel.convertInto(destinationPixel);
+                        cast(void)sourcePixel.convertInto(destinationPixel);
                     }
                 } else static if (flipHorizontal) {
                     size_t i = sourceRowSize - 1;

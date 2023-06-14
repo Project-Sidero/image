@@ -36,12 +36,12 @@ ColorSpace itu_rec709_rgb(ubyte channelBitCount, bool isFloat, bool haveHeadFoot
 
     if (isLinear) {
         GammaNone gamma;
-        String_UTF8 name = format("rec709_rgb%s%s_%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec709_rgb{:s}{:s}_{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, Rec709Chromacities, channelMin,
                 channelMin, channelMin, channelMax, channelMax, channelMax, gamma, allocator, name);
     } else {
         Rec601Gamma gamma;
-        String_UTF8 name = format("rec709_rgb%s%s_%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec709_rgb{:s}{:s}_{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!Rec601Gamma(channelBitCount, isFloat, Illuminants.D65_2Degrees, Rec709Chromacities, channelMin,
                 channelMin, channelMin, channelMax, channelMax, channelMax, gamma, allocator, name);
     }
@@ -117,12 +117,12 @@ ColorSpace itu_rec709_YCbCr(ubyte channelBitCount, bool isFloat, bool haveHeadFo
 
     if (isLinear) {
         GammaNone gamma;
-        String_UTF8 name = format("rec709_YCbCr%s%s_%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec709_YCbCr{:s}{:s}_{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
 
         return createYCbCr!GammaNone(channelBitCount, isFloat, haveHeadFootRoom, isLinear, allocator, gamma, Rec709Chromacities, name);
     } else {
         Rec601Gamma gamma;
-        String_UTF8 name = format("rec709_YCbCr%s%s_%s", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec709_YCbCr{:s}{:s}_{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
 
         return createYCbCr!Rec601Gamma(channelBitCount, isFloat, haveHeadFootRoom, isLinear, allocator, gamma, Rec709Chromacities, name);
     }

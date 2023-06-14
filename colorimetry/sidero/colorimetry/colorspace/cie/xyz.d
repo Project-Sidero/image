@@ -14,7 +14,7 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cieXYZ[%sx%s]", whitePoint.x, whitePoint.y).asReadOnly;
+    state.name = formattedWrite("cieXYZ[{:s}x{:s}]", whitePoint.x, whitePoint.y).asReadOnly;
     state.whitePoint = whitePoint;
 
     {

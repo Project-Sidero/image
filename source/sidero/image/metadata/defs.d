@@ -14,7 +14,7 @@ export @safe nothrow @nogc:
 
     ///
     this(MetaDataStorageReference reference, Image image) scope {
-        this.reference = reference;
+        cast(void)this.reference.opAssign(reference);
         this.image = image;
     }
 

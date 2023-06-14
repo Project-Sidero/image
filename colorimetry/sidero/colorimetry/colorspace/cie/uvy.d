@@ -19,7 +19,7 @@ ColorSpace cie_uvY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_u'v'Y").asReadOnly;
+    state.name = String_UTF8("cie_u'v'Y");
     state.whitePoint = Illuminants.E_2Degrees;
 
     {

@@ -20,7 +20,7 @@ ColorSpace grayScale(ubyte channelBitCount, bool isFloat, double minimum, double
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("grayscale[%sx%s]", whitePoint.x, whitePoint.y).asReadOnly;
+    state.name = formattedWrite("grayscale[{:s}x{:s}]", whitePoint.x, whitePoint.y).asReadOnly;
     state.whitePoint = whitePoint;
 
     {

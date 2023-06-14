@@ -307,7 +307,7 @@ struct Pixel {
         if (isNull)
             return;
 
-        this.colorSpace.fromXYZ(this.data, cieXYZSample);
+        cast(void)this.colorSpace.fromXYZ(this.data, cieXYZSample);
     }
 
     ///
@@ -347,7 +347,7 @@ struct Pixel {
 
             const before = channel.extractSample01(temp);
             const after = channel.sample01AsRange(before);
-            sink.formattedWrite(String_ASCII("%s"), after);
+            sink.formattedWrite("{:s}", after);
         }
     }
 
@@ -366,7 +366,7 @@ struct Pixel {
         }
 
         auto colorSpace = this.colorSpace;
-        sink.formattedWrite(String_ASCII("%s("), colorSpace.name);
+        sink.formattedWrite("{:s}(", colorSpace.name);
 
         void[] temp = data;
 
@@ -376,7 +376,7 @@ struct Pixel {
 
             const before = channel.extractSample01(temp);
             const after = channel.sample01AsRange(before);
-            sink.formattedWrite(String_ASCII("%s: %s"), channel.name, after);
+            sink.formattedWrite("{:s}: {:s}", channel.name, after);
         }
 
         sink ~= ")";

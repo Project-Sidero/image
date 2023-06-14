@@ -22,7 +22,7 @@ ColorSpace cie_luv(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_luv").asReadOnly;
+    state.name = String_UTF8("cie_luv");
     state.whitePoint = Illuminants.E_2Degrees;
 
     {
@@ -180,7 +180,7 @@ ColorSpace cie_lchUV(ubyte channelBitCount, RCAllocator allocator = RCAllocator.
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_lch_uv").asReadOnly;
+    state.name = String_UTF8("cie_lch_uv");
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);

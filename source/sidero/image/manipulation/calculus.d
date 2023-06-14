@@ -402,7 +402,7 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
 
             if (gotOne) {
                 temp *= sumIntensity;
-                output.channel01(c.name, temp);
+                cast(void)output.channel01(c.name, temp);
             }
         }
     }
@@ -585,7 +585,7 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
 
             if (gotOne) {
                 temp /= 2;
-                output.channel01(c.name, temp);
+                cast(void)output.channel01(c.name, temp);
             }
         }
     }

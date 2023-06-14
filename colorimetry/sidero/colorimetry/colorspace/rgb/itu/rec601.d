@@ -58,13 +58,13 @@ ColorSpace itu_rec601_rgb(ubyte channelBitCount, bool isFloat, bool haveHeadFoot
 
     if (isLinear) {
         GammaNone gamma;
-        String_UTF8 name = format("rec601_rgb%s%s_%s[%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+        String_UTF8 name = formattedWrite("rec601_rgb{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, whitePoint, primaryChromacity, channelMin, channelMin,
                 channelMin, channelMax, channelMax, channelMax, gamma, allocator, name);
     } else {
         Rec601Gamma gamma;
-        String_UTF8 name = format("rec601_rgb%s%s_%s[%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+        String_UTF8 name = formattedWrite("rec601_rgb{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
         return rgb!Rec601Gamma(channelBitCount, isFloat, whitePoint, primaryChromacity, channelMin, channelMin,
                 channelMin, channelMax, channelMax, channelMax, gamma, allocator, name);
@@ -147,14 +147,14 @@ ColorSpace itu_rec601_YCbCr(ubyte channelBitCount, bool isFloat, bool haveHeadFo
 
     if (isLinear) {
         GammaNone gamma;
-        String_UTF8 name = format("rec601_YCbCr%s%s_%s[%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
 
         return createYCbCr!GammaNone(channelBitCount, isFloat, haveHeadFootRoom, isLinear, whitePoint, allocator,
                 gamma, primaryChromacity, name);
     } else {
         Rec601Gamma gamma;
-        String_UTF8 name = format("rec601_YCbCr%s%s_%s[%sx%s]%s", channelBitCount, isFloat ? "f" : "",
+        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
 
         return createYCbCr!Rec601Gamma(channelBitCount, isFloat, haveHeadFootRoom, isLinear, whitePoint, allocator,

@@ -4,6 +4,7 @@ import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
 import sidero.base.math.linear_algebra : Vec3d;
 import sidero.base.text;
+import sidero.base.attributes;
 
 @safe nothrow @nogc:
 
@@ -102,7 +103,7 @@ struct ColorSpace {
 
     ///
     bool haveChannel(scope string name) scope const @trusted {
-        foreach(channel; this.channels) {
+        foreach (channel; this.channels) {
             if (channel.name == name)
                 return true;
         }
@@ -354,7 +355,7 @@ struct ColorSpace {
             return;
         }
 
-        sink.formattedWrite(String_ASCII("%s["), this.name);
+        sink.formattedWrite("{:s}[", this.name);
 
         foreach (i, channel; this.channels) {
             if (i > 0)
@@ -380,13 +381,13 @@ struct ColorSpace {
             return;
         }
 
-        sink.formattedWrite(String_ASCII("%s["), this.name);
+        sink.formattedWrite("{:s}[", this.name);
 
         foreach (i, channel; this.channels) {
             if (i > 0)
                 sink ~= ", ";
 
-            sink.formattedWrite(String_ASCII("{name: %s, type: %sbits %s %s, min: %s%s%s, max: %s%s%s}"), channel.name,
+            sink.formattedWrite("{{name: {:s}, type: {:s}bits {:s} {:s}, min: {:s}{:s}{:s}, max: {:s}{:s}{:s}}}", channel.name,
                     channel.bits, channel.isSigned ? "signed" : "unsigned", channel.isWhole ? "whole" : "float",
                     channel.minimum, channel.wrapAroundMinimum ? " wrap around" : "", channel.clampMinimum ?
                     " clamped" : "", channel.maximum, channel.wrapAroundMaximum ? " wrap around" : "", channel.clampMaximum ? " clamped"
@@ -738,12 +739,14 @@ struct GammaPower {
     ///
     double apply(double input) {
         import core.stdc.math : pow;
+
         return pow(input, (1f / factor));
     }
 
     ///
     double unapply(double input) {
         import core.stdc.math : pow;
+
         return pow(input, factor);
     }
 }

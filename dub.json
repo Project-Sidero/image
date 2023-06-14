@@ -1,12 +1,13 @@
 {
     "authors": [
-        "alpha"
+        "Richard (Rikki) Andrew Cattermole"
     ],
-    "copyright": "Copyright © 2022, alpha",
-    "description": "A minimal D application.",
-    "license": "proprietary",
+    "copyright": "Copyright © 2022-2023, Richard Cattermole",
+    "description": "Colorimetry & image library for -betterC and beyond.",
+    "license": "Artistic-2.0",
     "name": "sidero_image",
-    "dflags": ["-preview=dip1000", "-preview=dip25"],
+    "dflags": ["-preview=dip1000"],
+    "dflags-ldc2": ["-preview=dip25"],
     "dependencies": {
         "sidero_image:colorimetry": "*"
     },

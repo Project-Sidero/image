@@ -22,7 +22,7 @@ ColorSpace cie_lab(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_lab").asReadOnly;
+    state.name = String_UTF8("cie_lab");
 
     {
         ChannelSpecification[] channels = allocator.makeArray!ChannelSpecification(3);
@@ -179,7 +179,7 @@ ColorSpace cie_lchAB(ubyte channelBitCount, RCAllocator allocator = RCAllocator.
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
-    state.name = format("cie_lch_ab").asReadOnly;
+    state.name = String_UTF8("cie_lch_ab");
     state.whitePoint = Illuminants.E_2Degrees;
 
     {

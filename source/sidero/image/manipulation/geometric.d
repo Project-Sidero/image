@@ -140,7 +140,7 @@ Result!Image scale(scope Image source, double xScale, double yScale, return scop
             }
 
             if (gotOne) {
-                output.channel01(c.name, temp);
+                cast(void)output.channel01(c.name, temp);
             }
         }
     }
@@ -234,7 +234,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
                 if (!output)
                     return typeof(return)(output.getError());
 
-                fallbackColor.convertInto(output);
+                cast(void)fallbackColor.convertInto(output);
             }
         }
     }
@@ -246,7 +246,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
                 if (!output)
                     return typeof(return)(output.getError());
 
-                fallbackColor.convertInto(output);
+                cast(void)fallbackColor.convertInto(output);
             }
         }
 
@@ -259,7 +259,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
 
             if (newLoc[0] < 0 || newLoc[1] < 0 || newLoc[0] >= originalSize[0] || newLoc[1] >= originalSize[1]) {
                 if (!fallbackColor.isNull)
-                    fallbackColor.convertInto(output);
+                    cast(void)fallbackColor.convertInto(output);
             } else {
                 const newLoc2 = cast(Vector!(size_t, 2))newLoc;
 
@@ -267,7 +267,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
                 if (!got)
                     return typeof(return)(got.getError());
 
-                got.convertInto(output);
+                cast(void)got.convertInto(output);
             }
         }
 
@@ -277,7 +277,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
                 if (!output)
                     return typeof(return)(output.getError());
 
-                fallbackColor.convertInto(output);
+                cast(void)fallbackColor.convertInto(output);
             }
         }
     }
@@ -289,7 +289,7 @@ Result!Image rotate(scope Image source, double radianAngle, scope Pixel fallback
                 if (!output)
                     return typeof(return)(output.getError());
 
-                fallbackColor.convertInto(output);
+                cast(void)fallbackColor.convertInto(output);
             }
         }
     }

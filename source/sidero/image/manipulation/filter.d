@@ -378,7 +378,7 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
                         }
                     }
 
-                    output.channel01(channel.name, sample);
+                    cast(void)output.channel01(channel.name, sample);
                 }
             }
         }
@@ -494,7 +494,7 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
                         }
                     }
 
-                    output.channel01(channel.name, sample);
+                    cast(void)output.channel01(channel.name, sample);
                 }
             }
         }
