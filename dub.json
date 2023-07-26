@@ -7,7 +7,6 @@
     "license": "Artistic-2.0",
     "name": "sidero_image",
     "dflags": ["-preview=dip1000"],
-    "dflags-ldc2": ["-preview=dip25"],
     "dependencies": {
         "sidero_image:colorimetry": "*"
     },
@@ -39,7 +38,7 @@
         {
             "name": "colorimetry",
             "targetType": "sourceLibrary",
-            "dflags": ["-preview=dip1000", "-preview=dip25"],
+            "dflags": ["-preview=dip1000"],
             "dflags-dmd": ["-allinst"],
             "importPaths": [
                 "colorimetry"

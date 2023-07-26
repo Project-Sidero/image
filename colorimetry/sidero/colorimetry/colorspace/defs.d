@@ -5,6 +5,7 @@ import sidero.base.containers.readonlyslice;
 import sidero.base.math.linear_algebra : Vec3d;
 import sidero.base.text;
 import sidero.base.attributes;
+import sidero.base.internal.atomic;
 
 @safe nothrow @nogc:
 
@@ -53,8 +54,6 @@ struct CIExyYSample {
 ///
 struct ColorSpace {
     private @PrintIgnore @PrettyPrintIgnore {
-        import core.atomic : atomicLoad, atomicOp;
-
         State* state;
     }
 
@@ -64,11 +63,11 @@ struct ColorSpace {
         this.state = other.state;
 
         if (state !is null)
-            atomicOp!"+="(state.refCount, 1);
+            atomicIncrementAndLoad(state.refCount, 1);
     }
 
     ~this() scope @trusted {
-        if (state !is null && atomicOp!"-="(state.refCount, 1) == 0) {
+        if (state !is null && atomicDecrementAndLoad(state.refCount, 1) == 0) {
             RCAllocator allocator = state.allocator;
             void[] data = (cast(void*)state)[0 .. State.sizeof + state.length];
             allocator.dispose(data);

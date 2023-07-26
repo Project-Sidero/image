@@ -6,6 +6,7 @@ import sidero.colorimetry.pixel;
 import sidero.base.allocators;
 import sidero.base.containers.map.concurrenthashmap;
 import sidero.base.errors;
+import sidero.base.internal.atomic;
 
 export:
 
@@ -32,9 +33,7 @@ export @safe nothrow @nogc:
     @disable auto opCast(T)();
 
     this(return scope ImageState* state) scope {
-        import core.atomic : atomicOp;
-
-        atomicOp!"+="(state.refCount, 1);
+        atomicIncrementAndLoad(state.refCount, 1);
 
         this.state = state;
         this.pixelStride = state.pixelStride;
@@ -77,19 +76,15 @@ export @safe nothrow @nogc:
     }
 
     void addRef() scope {
-        import core.atomic : atomicOp;
-
         if(!isNull)
-            atomicOp!"+="(state.refCount, 1);
+            atomicIncrementAndLoad(state.refCount, 1);
     }
 
     void removeRef() scope @trusted {
-        import core.atomic : atomicOp;
-
         if(isNull)
             return;
 
-        if(atomicOp!"-="(state.refCount, 1) == 0) {
+        if(atomicDecrementAndLoad(state.refCount, 1) == 0) {
             RCAllocator alloc = state.allocator;
             alloc.dispose(state);
             state = null;

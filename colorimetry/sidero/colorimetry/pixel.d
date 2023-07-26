@@ -4,6 +4,7 @@ import sidero.base.allocators;
 import sidero.base.errors;
 import sidero.base.containers.readonlyslice;
 import sidero.base.text;
+import sidero.base.internal.atomic;
 
 ///
 alias PixelReference = Result!Pixel;
@@ -30,11 +31,9 @@ struct Pixel {
         @safe nothrow @nogc:
 
             void rc(bool addRef, scope void* user) @trusted {
-                import core.atomic : atomicOp;
-
                 if (addRef)
-                    atomicOp!"+="(refCount, 1);
-                else if (atomicOp!"-="(refCount, 1) == 0) {
+                    atomicIncrementAndLoad(refCount, 1);
+                else if (atomicDecrementAndLoad(refCount, 1) == 0) {
                     RCAllocator allocator = this.allocator;
                     allocator.dispose(data);
                     allocator.dispose(&this);
