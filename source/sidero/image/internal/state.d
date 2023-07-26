@@ -45,7 +45,7 @@ export @safe nothrow @nogc:
     }
 
     this(return scope ref ImageRef other) scope @trusted {
-        foreach (i, v; other.tupleof)
+        foreach(i, v; other.tupleof)
             this.tupleof[i] = v;
 
         addRef();
@@ -70,7 +70,7 @@ export @safe nothrow @nogc:
     }
 
     void rc(bool addRef, scope void* user) {
-        if (addRef)
+        if(addRef)
             this.addRef;
         else
             removeRef;
@@ -79,17 +79,17 @@ export @safe nothrow @nogc:
     void addRef() scope {
         import core.atomic : atomicOp;
 
-        if (!isNull)
+        if(!isNull)
             atomicOp!"+="(state.refCount, 1);
     }
 
     void removeRef() scope @trusted {
         import core.atomic : atomicOp;
 
-        if (isNull)
+        if(isNull)
             return;
 
-        if (atomicOp!"-="(state.refCount, 1) == 0) {
+        if(atomicOp!"-="(state.refCount, 1) == 0) {
             RCAllocator alloc = state.allocator;
             alloc.dispose(state);
             state = null;
@@ -97,7 +97,7 @@ export @safe nothrow @nogc:
     }
 
     void offset(size_t x, size_t y) scope @trusted {
-        if (isNull)
+        if(isNull)
             return;
 
         assert(x < this.width);
@@ -111,7 +111,7 @@ export @safe nothrow @nogc:
     }
 
     void subset(size_t width, size_t height) scope {
-        if (isNull)
+        if(isNull)
             return;
 
         assert(width < this.width);
@@ -122,12 +122,12 @@ export @safe nothrow @nogc:
     }
 
     ImageRef dup(RCAllocator allocator = RCAllocator.init, ptrdiff_t newAlignment = -1, bool keepOldMetaData = false) scope {
-        if (isNull)
+        if(isNull)
             return ImageRef.init;
-        else if (allocator.isNull)
+        else if(allocator.isNull)
             allocator = state.allocator;
 
-        if (newAlignment < 0)
+        if(newAlignment < 0)
             newAlignment = state.rowAlignment;
 
         size_t x, y;
@@ -138,12 +138,12 @@ export @safe nothrow @nogc:
     }
 
     ImageRef dup(ColorSpace colorSpace, RCAllocator allocator = RCAllocator.init, ptrdiff_t newAlignment = -1, bool keepOldMetaData = false) scope {
-        if (isNull || colorSpace.isNull)
+        if(isNull || colorSpace.isNull)
             return ImageRef.init;
-        else if (allocator.isNull)
+        else if(allocator.isNull)
             allocator = state.allocator;
 
-        if (newAlignment < 0)
+        if(newAlignment < 0)
             newAlignment = state.rowAlignment;
 
         size_t x, y;
@@ -154,7 +154,7 @@ export @safe nothrow @nogc:
     }
 
     void flipHorizontal() scope @trusted {
-        if (isNull)
+        if(isNull)
             return;
 
         this.dataBegin += (this.width - 1) * this.pixelStride;
@@ -162,7 +162,7 @@ export @safe nothrow @nogc:
     }
 
     void flipVertical() scope @trusted {
-        if (isNull)
+        if(isNull)
             return;
 
         this.dataBegin += (this.height - 1) * this.rowStride;
@@ -170,21 +170,21 @@ export @safe nothrow @nogc:
     }
 
     bool containsMetaData(Type)() scope {
-        if (isNull)
+        if(isNull)
             return false;
 
         return state.containsMetaData!Type;
     }
 
     void removeMetaData(Type)() scope {
-        if (isNull)
+        if(isNull)
             return;
 
         state.removeMetaData!Type;
     }
 
     ImageMetaData!Type getMetaData(Type)() scope @trusted {
-        if (isNull)
+        if(isNull)
             return typeof(return).init;
 
         Image ret;
@@ -195,7 +195,7 @@ export @safe nothrow @nogc:
     }
 
     size_t metaDataCount() scope {
-        if (isNull)
+        if(isNull)
             return 0;
 
         return this.state.metaDataCount;
@@ -239,7 +239,7 @@ export @safe nothrow @nogc:
         this.height = size[1];
         this.colorSpace = colorSpace;
 
-        foreach (cspec; colorSpace.channels)
+        foreach(cspec; colorSpace.channels)
             this.pixelStride += cspec.numberOfBytes;
 
         this.configureAsAlignment(alignment);
@@ -249,12 +249,12 @@ export @safe nothrow @nogc:
         void* temp = this.data.ptr;
         void[] firstRow = temp[0 .. this.rowStride];
 
-        foreach (cspec; colorSpace.channels) {
+        foreach(cspec; colorSpace.channels) {
             temp += cspec.fillDefault(temp[0 .. this.pixelStride]);
         }
 
-        foreach (x; 1 .. this.width) {
-            foreach (i, ref v; cast(ubyte[])temp[0 .. this.pixelStride])
+        foreach(x; 1 .. this.width) {
+            foreach(i, ref v; cast(ubyte[])temp[0 .. this.pixelStride])
                 v = (cast(ubyte[])firstRow[0 .. this.pixelStride])[i];
             temp += this.pixelStride;
         }
@@ -262,11 +262,11 @@ export @safe nothrow @nogc:
         //
 
         temp = this.data.ptr + this.rowStride;
-        foreach (y; 1 .. this.height) {
+        foreach(y; 1 .. this.height) {
             // firstRow could be aligned, which is VERY important if you want a vectorized copy!
             // which is why firstRow is is the row length, and not actual pixel length
 
-            foreach (i, ref v; cast(ubyte[])temp[0 .. this.rowStride])
+            foreach(i, ref v; cast(ubyte[])temp[0 .. this.rowStride])
                 v = (cast(ubyte[])firstRow[0 .. this.rowStride])[i];
             temp += this.rowStride;
         }
@@ -283,19 +283,19 @@ export @safe nothrow @nogc:
 
         ImageState* ret = newAllocator.make!ImageState(newAllocator, newColorSpace, size, alignment);
 
-        if (keepOldMetaData)
+        if(keepOldMetaData)
             ret.metadata = this.metadata;
 
         void* ptrToDestination = ret.data.ptr;
         ptrdiff_t destinationRowStride = ret.rowStride, destinationPixelStride = ret.pixelStride;
         const destinationPixelSize = ret.pixelStride, destinationRowSize = this.rowStride;
 
-        if (flipVertical) {
+        if(flipVertical) {
             ptrToDestination += (ret.height - 1) * destinationRowStride;
             destinationRowStride *= -1;
         }
 
-        if (flipHorizontal) {
+        if(flipHorizontal) {
             ptrToDestination += (ret.width - 1) * destinationPixelStride;
             destinationPixelStride *= -1;
         }
@@ -305,12 +305,12 @@ export @safe nothrow @nogc:
             sourceRowSize = this.rowStride;
 
         void handle(bool sameColorSpace, bool flipHorizontal = false)() {
-            foreach (y; 0 .. size[1]) {
+            foreach(y; 0 .. size[1]) {
                 void* rowDest = ptrToDestination;
                 void* rowSrc = ptrToSource;
 
-                static if (sameColorSpace) {
-                    foreach (x; 0 .. size[0]) {
+                static if(sameColorSpace) {
+                    foreach(x; 0 .. size[0]) {
                         rowSrc += sourcePixelStride;
                         rowDest += destinationPixelStride;
 
@@ -320,12 +320,12 @@ export @safe nothrow @nogc:
                             sourcePixel = Pixel(pixelFrom, this.colorSpace, null, null);
                         cast(void)sourcePixel.convertInto(destinationPixel);
                     }
-                } else static if (flipHorizontal) {
+                } else static if(flipHorizontal) {
                     size_t i = sourceRowSize - 1;
-                    foreach (ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
+                    foreach(ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
                         v = (cast(ubyte*)rowSrc)[i--];
                 } else {
-                    foreach (i, ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
+                    foreach(i, ref v; cast(ubyte[])rowDest[0 .. destinationRowSize])
                         v = (cast(ubyte*)rowSrc)[i];
                 }
 
@@ -334,11 +334,11 @@ export @safe nothrow @nogc:
             }
         }
 
-        if (this.colorSpace == newColorSpace) {
+        if(this.colorSpace == newColorSpace) {
             assert(ret.pixelStride == this.pixelStride);
             handle!true;
         } else {
-            if (flipHorizontal)
+            if(flipHorizontal)
                 handle!(false, true);
             else
                 handle!(false, false);
@@ -350,9 +350,9 @@ export @safe nothrow @nogc:
     void subsetSizeAndOffsetFromThis(scope const ref ImageRef imageRef, ref size_t x, ref size_t y) scope {
         size_t fromZero = imageRef.dataBegin - &this.data[0];
 
-        if (imageRef.rowStride < 0)
+        if(imageRef.rowStride < 0)
             fromZero -= (imageRef.height - 1) * this.rowStride;
-        if (imageRef.pixelStride < 0)
+        if(imageRef.pixelStride < 0)
             fromZero -= (imageRef.width - 1) * this.pixelStride;
 
         y = fromZero / this.rowStride;
@@ -384,13 +384,13 @@ export @safe nothrow @nogc:
         enum keyId = fullyQualifiedName!Type;
         auto ret = metadata[keyId];
 
-        if (ret)
+        if(ret)
             return ret;
 
         Type* temp = allocator.make!Type;
         MetaDataStorage.OnDeallocate onDeallocate;
 
-        static if (__traits(compiles, { onDeallocate = &temp.__dtor; })) {
+        static if(__traits(compiles, { onDeallocate = &temp.__dtor; })) {
             onDeallocate = &temp.__dtor;
         }
 
@@ -411,10 +411,10 @@ export @safe nothrow @nogc:
         this.rowStride = this.width * this.pixelStride;
         this.rowAlignment = alignment;
 
-        if (alignment > 0)
+        if(alignment > 0)
             this.rowPadding = alignment - (this.rowStride % alignment);
 
-        if (this.rowPadding == alignment)
+        if(this.rowPadding == alignment)
             this.rowPadding = 0;
         else
             this.rowStride += this.rowPadding;
@@ -472,8 +472,8 @@ export @safe nothrow @nogc:
     @disable this(this);
 
     ~this() scope @trusted {
-        if (!allocator.isNull && data !is null) {
-            if (this.onDeallocateDel !is null)
+        if(!allocator.isNull && data !is null) {
+            if(this.onDeallocateDel !is null)
                 this.onDeallocateDel(data);
 
             allocator.dispose(data);

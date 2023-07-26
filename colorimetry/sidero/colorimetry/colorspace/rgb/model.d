@@ -13,10 +13,10 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         CIEChromacityCoordinate[3] primaryChromacity, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init,
         String_UTF8 name = String_UTF8.init) @trusted {
 
-    if (name.isNull) {
-        name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "", whitePoint.x,
-                whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
-                primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
+    if(name.isNull) {
+        name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}", channelBitCount,
+                isFloat ? "f" : "", whitePoint.x, whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y,
+                primaryChromacity[1].x, primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
     }
 
     const minimum = double(0), maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
@@ -29,15 +29,16 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
 ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChromacityCoordinate whitePoint,
         CIEChromacityCoordinate[3] primaryChromacity, double minR, double minG, double minB, double maxR, double maxG,
         double maxB, Gamma gamma = Gamma.init, RCAllocator allocator = RCAllocator.init, String_UTF8 name = String_UTF8.init) @trusted {
-    if (allocator.isNull)
+    if(allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, RGBModel!Gamma.sizeof);
 
-    if (name.isNull) {
-        state.name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
-                whitePoint.x, whitePoint.y, primaryChromacity[0].x, primaryChromacity[0].y, primaryChromacity[1].x,
-                primaryChromacity[1].y, primaryChromacity[2].x, primaryChromacity[2].y, gamma).asReadOnly;
+    if(name.isNull) {
+        state.name = formattedWrite("rgb_{:s}{:s}[{:s}x{:s}][r:{:s}x{:s}, g:{:s}x{:s}, b:{:s}x{:s}]{:s}",
+                channelBitCount, isFloat ? "f" : "", whitePoint.x, whitePoint.y, primaryChromacity[0].x,
+                primaryChromacity[0].y, primaryChromacity[1].x, primaryChromacity[1].y, primaryChromacity[2].x,
+                primaryChromacity[2].y, gamma).asReadOnly;
     } else {
         state.name = name;
     }
@@ -51,7 +52,7 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         *modelTo = *modelFrom;
     };
 
-    static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+    static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
         state.gammaApply = (double input, scope const ColorSpace.State* state) @trusted {
             RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace().ptr;
             return model.gammaState.apply(input);
@@ -97,25 +98,25 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         Vec3d sample;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (input.length < channel.numberOfBytes)
+            if(input.length < channel.numberOfBytes)
                 return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             double value = channel.extractSample01(input);
 
-            if (channel.name is model.ChannelR)
+            if(channel.name is model.ChannelR)
                 index = 0;
-            else if (channel.name is model.ChannelG)
+            else if(channel.name is model.ChannelG)
                 index = 1;
-            else if (channel.name is model.ChannelB)
+            else if(channel.name is model.ChannelB)
                 index = 2;
 
-            if (index >= 0) {
+            if(index >= 0) {
                 sample[index] = value;
 
-                static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+                static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
                     sample[index] = model.gammaState.unapply(sample[index]);
                 }
             }
@@ -130,32 +131,32 @@ ColorSpace rgb(Gamma = GammaNone)(ubyte channelBitCount, bool isFloat, CIEChroma
         RGBModel!Gamma* model = cast(RGBModel!Gamma*)state.getExtraSpace.ptr;
         Vec3d got = model.fromXYZ.dotProduct(input.sample);
 
-        if (state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
+        if(state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
 
-        static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+        static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
             got[0] = model.gammaState.apply(got[0]);
             got[1] = model.gammaState.apply(got[1]);
             got[2] = model.gammaState.apply(got[2]);
         }
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is model.ChannelR)
+            if(channel.name is model.ChannelR)
                 index = 0;
-            else if (channel.name is model.ChannelG)
+            else if(channel.name is model.ChannelG)
                 index = 1;
-            else if (channel.name is model.ChannelB)
+            else if(channel.name is model.ChannelB)
                 index = 2;
 
-            if (output.length < channel.numberOfBytes)
+            if(output.length < channel.numberOfBytes)
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
-            if (index >= 0)
+            if(index >= 0)
                 channel.store01Sample(output, got[index]);
             else
                 channel.storeDefaultSample(output);
@@ -192,7 +193,7 @@ struct RGBModel(Gamma) {
     }
 
     this(scope ref RGBModel other) scope @trusted {
-        static foreach (i; 0 .. RGBModel.tupleof.length)
+        static foreach(i; 0 .. RGBModel.tupleof.length)
             this.tupleof[i] = other.tupleof[i];
     }
 }

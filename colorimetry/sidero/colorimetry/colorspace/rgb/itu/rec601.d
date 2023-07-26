@@ -38,7 +38,7 @@ ColorSpace itu_rec601_rgb(ubyte channelBitCount, bool isFloat, bool haveHeadFoot
 
     static PrimaryNames = ["Rec709", "Line625", "Line525"];
 
-    if (haveHeadFootRoom && (isFloat || !(channelBitCount == 8 || channelBitCount == 10))) {
+    if(haveHeadFootRoom && (isFloat || !(channelBitCount == 8 || channelBitCount == 10))) {
         haveHeadFootRoom = false;
     }
 
@@ -46,17 +46,17 @@ ColorSpace itu_rec601_rgb(ubyte channelBitCount, bool isFloat, bool haveHeadFoot
         : (primary == Rec601_PrimaryVariant.Line625 ? Rec601_Line625_Chromacities : Rec601_Line525_Chromacities);
     double channelMin = double(0), channelMax = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
 
-    if (haveHeadFootRoom && !isFloat) {
-        if (channelBitCount == 8) {
+    if(haveHeadFootRoom && !isFloat) {
+        if(channelBitCount == 8) {
             channelMin = 16;
             channelMax = 235;
-        } else if (channelBitCount == 10) {
+        } else if(channelBitCount == 10) {
             channelMin = 64;
             channelMax = 940;
         }
     }
 
-    if (isLinear) {
+    if(isLinear) {
         GammaNone gamma;
         String_UTF8 name = formattedWrite("rec601_rgb{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
                 PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
@@ -138,24 +138,24 @@ ColorSpace itu_rec601_YCbCr(ubyte channelBitCount, bool isFloat, bool haveHeadFo
 
     static PrimaryNames = ["Rec709", "Line625", "Line525"];
 
-    if (haveHeadFootRoom && (isFloat || !(channelBitCount == 8 || channelBitCount == 10))) {
+    if(haveHeadFootRoom && (isFloat || !(channelBitCount == 8 || channelBitCount == 10))) {
         haveHeadFootRoom = false;
     }
 
     const primaryChromacity = primary == Rec601_PrimaryVariant.Rec709 ? Rec709Chromacities
         : (primary == Rec601_PrimaryVariant.Line625 ? Rec601_Line625_Chromacities : Rec601_Line525_Chromacities);
 
-    if (isLinear) {
+    if(isLinear) {
         GammaNone gamma;
-        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
-                PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ?
+                "f" : "", PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
 
         return createYCbCr!GammaNone(channelBitCount, isFloat, haveHeadFootRoom, isLinear, whitePoint, allocator,
                 gamma, primaryChromacity, name);
     } else {
         Rec601Gamma gamma;
-        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ? "f" : "",
-                PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
+        String_UTF8 name = formattedWrite("rec601_YCbCr{:s}{:s}_{:s}[{:s}x{:s}]{:s}", channelBitCount, isFloat ?
+                "f" : "", PrimaryNames[primary], whitePoint.x, whitePoint.y, gamma).asReadOnly;
 
         return createYCbCr!Rec601Gamma(channelBitCount, isFloat, haveHeadFootRoom, isLinear, whitePoint, allocator,
                 gamma, primaryChromacity, name);
@@ -229,7 +229,7 @@ struct Rec601Gamma {
     double apply(double input) {
         import core.stdc.math : pow;
 
-        if (input < 0.018)
+        if(input < 0.018)
             return input * 4.5;
         else
             return 1.099 * pow(input, 0.45) - 0.099;
@@ -239,7 +239,7 @@ struct Rec601Gamma {
     double unapply(double input) {
         import core.stdc.math : pow;
 
-        if (input < 0.081)
+        if(input < 0.081)
             return input / 4.5;
         else
             return pow((input + 0.099) / 1.099, 1 / 0.45);
@@ -249,10 +249,10 @@ struct Rec601Gamma {
 private:
 
 ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHeadFootRoom, bool isLinear,
-        CIEChromacityCoordinate whitePoint, RCAllocator allocator,
-        Gamma gamma, CIEChromacityCoordinate[3] primaryChromacity, String_UTF8 name) @trusted {
+        CIEChromacityCoordinate whitePoint, RCAllocator allocator, Gamma gamma,
+        CIEChromacityCoordinate[3] primaryChromacity, String_UTF8 name) @trusted {
 
-    if (allocator.isNull)
+    if(allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, YCbCrModel!Gamma.sizeof);
@@ -266,7 +266,7 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         *modelTo = *modelFrom;
     };
 
-    static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+    static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
         state.gammaApply = (double input, scope const ColorSpace.State* state) @trusted {
             YCbCrModel!Gamma* model = cast(YCbCrModel!Gamma*)state.getExtraSpace().ptr;
             return model.gammaState.apply(input);
@@ -293,24 +293,25 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         channels[1] = channels[0];
         channels[2] = channels[0];
 
-        if (haveHeadFootRoom) {
+        if(haveHeadFootRoom) {
             assert(!isFloat);
 
-            if (channelBitCount == 8) {
+            if(channelBitCount == 8) {
                 channels[0].minimum = 16;
                 channels[0].maximum = 235;
                 channels[1].minimum = 16;
                 channels[1].maximum = 240;
                 channels[2].minimum = 16;
                 channels[2].maximum = 240;
-            } else if (channelBitCount == 10) {
+            } else if(channelBitCount == 10) {
                 channels[0].minimum = 64;
                 channels[0].maximum = 940;
                 channels[1].minimum = 64;
                 channels[1].maximum = 960;
                 channels[2].minimum = 64;
                 channels[2].maximum = 960;
-            } else assert(0);
+            } else
+                assert(0);
         } else {
             const minimum = double(0), maximum = isFloat ? 1 : (cast(double)((1L << channelBitCount) - 1));
 
@@ -334,25 +335,25 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         Vec3d sample;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (input.length < channel.numberOfBytes)
+            if(input.length < channel.numberOfBytes)
                 return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             double value = channel.extractSample01(input);
 
-            if (channel.name is model.ChannelY)
+            if(channel.name is model.ChannelY)
                 index = 0;
-            else if (channel.name is model.ChannelCb)
+            else if(channel.name is model.ChannelCb)
                 index = 1;
-            else if (channel.name is model.ChannelCr)
+            else if(channel.name is model.ChannelCr)
                 index = 2;
 
-            if (index >= 0) {
+            if(index >= 0) {
                 sample[index] = value;
 
-                static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+                static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
                     sample[index] = model.gammaState.unapply(sample[index]);
                 }
             }
@@ -369,34 +370,34 @@ ColorSpace createYCbCr(Gamma)(ubyte channelBitCount, bool isFloat, bool haveHead
         YCbCrModel!Gamma* model = cast(YCbCrModel!Gamma*)state.getExtraSpace.ptr;
         Vec3d asRGB = model.fromXYZ.dotProduct(input.sample);
 
-        if (state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
+        if(state.whitePoint.asXYZ != input.whitePoint.asXYZ) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             asRGB = adapt.dotProduct(asRGB);
         }
 
         auto asYCbCr = model.fromRGB.dotProduct(asRGB);
 
-        static if (__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
+        static if(__traits(hasMember, Gamma, "apply") && __traits(hasMember, Gamma, "unapply")) {
             asYCbCr[0] = model.gammaState.apply(asYCbCr[0]);
             asYCbCr[1] = model.gammaState.apply(asYCbCr[1]);
             asYCbCr[2] = model.gammaState.apply(asYCbCr[2]);
         }
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is model.ChannelY)
+            if(channel.name is model.ChannelY)
                 index = 0;
-            else if (channel.name is model.ChannelCb)
+            else if(channel.name is model.ChannelCb)
                 index = 1;
-            else if (channel.name is model.ChannelCr)
+            else if(channel.name is model.ChannelCr)
                 index = 2;
 
-            if (output.length < channel.numberOfBytes)
+            if(output.length < channel.numberOfBytes)
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
-            if (index >= 0)
+            if(index >= 0)
                 channel.store01Sample(output, asYCbCr[index]);
             else
                 channel.storeDefaultSample(output);
@@ -445,7 +446,7 @@ struct YCbCrModel(Gamma) {
     }
 
     this(scope ref YCbCrModel other) scope @trusted {
-        static foreach (i; 0 .. YCbCrModel.tupleof.length)
+        static foreach(i; 0 .. YCbCrModel.tupleof.length)
             this.tupleof[i] = other.tupleof[i];
     }
 }

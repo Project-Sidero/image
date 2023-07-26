@@ -16,7 +16,7 @@ static immutable CIEChromacityCoordinate[3] sRGBChromacities = [
 ColorSpace sRGB8(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(8, false, false, false);
         approx = sRGB(8, false, false, true);
     }
@@ -28,7 +28,7 @@ ColorSpace sRGB8(bool approxGamma = false) @trusted {
 ColorSpace sRGB8l(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(8, false, true, false);
         approx = sRGB(8, false, true, true);
     }
@@ -40,7 +40,7 @@ ColorSpace sRGB8l(bool approxGamma = false) @trusted {
 ColorSpace sRGB16(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(16, false, false, false);
         approx = sRGB(16, false, false, true);
     }
@@ -52,7 +52,7 @@ ColorSpace sRGB16(bool approxGamma = false) @trusted {
 ColorSpace sRGB16l(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(16, false, true, false);
         approx = sRGB(16, false, true, true);
     }
@@ -64,7 +64,7 @@ ColorSpace sRGB16l(bool approxGamma = false) @trusted {
 ColorSpace sRGBf(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(32, true, false, false);
         approx = sRGB(32, true, false, true);
     }
@@ -76,7 +76,7 @@ ColorSpace sRGBf(bool approxGamma = false) @trusted {
 ColorSpace sRGBfl(bool approxGamma = false) @trusted {
     __gshared ColorSpace approx, nonApprox;
 
-    if (approx.isNull) {
+    if(approx.isNull) {
         nonApprox = sRGB(32, true, true, false);
         approx = sRGB(32, true, true, true);
     }
@@ -88,11 +88,11 @@ ColorSpace sRGBfl(bool approxGamma = false) @trusted {
 ColorSpace sRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false, bool approxGamma = false) {
     import sidero.base.text;
 
-    if (isLinear) {
+    if(isLinear) {
         auto gamma = GammaNone.init;
         auto name = formattedWrite("sRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, GammaNone.init, RCAllocator.init, name);
-    } else if (approxGamma) {
+    } else if(approxGamma) {
         auto gamma = GammaPower(2.2);
         auto name = formattedWrite("sRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
         return rgb!GammaPower(channelBitCount, isFloat, Illuminants.D65_2Degrees, sRGBChromacities, gamma, RCAllocator.init, name);
@@ -359,7 +359,7 @@ struct sRGBGamma {
     double apply(double input) {
         import core.stdc.math : pow;
 
-        if (input > 0.0031308)
+        if(input > 0.0031308)
             return 1.055 * pow(input, (1 / 2.4)) - 0.055;
         else
             return input * 12.92;
@@ -369,7 +369,7 @@ struct sRGBGamma {
     double unapply(double input) {
         import core.stdc.math : pow;
 
-        if (input > 0.04045)
+        if(input > 0.04045)
             return pow((input + 0.055) / 1.055, 2.4);
         else
             return input / 12.92;

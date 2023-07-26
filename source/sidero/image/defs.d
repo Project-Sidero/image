@@ -58,14 +58,14 @@ export @safe nothrow @nogc:
 
     ///
     this(return scope ref Image other) scope @trusted {
-        foreach (i, v; other.tupleof)
+        foreach(i, v; other.tupleof)
             this.tupleof[i] = v;
     }
 
     ///
     this(return scope ColorSpace colorSpace, size_t width, size_t height,
             return scope RCAllocator allocator = RCAllocator.init, size_t alignment = 4) scope @trusted {
-        if (allocator.isNull)
+        if(allocator.isNull)
             allocator = globalAllocator();
 
         imageRef = ImageRef(allocator.make!ImageState(allocator, colorSpace, cast(size_t[2])[width, height], alignment));
@@ -110,8 +110,8 @@ export @safe nothrow @nogc:
             static Offsets = [3, 2, 1, 0];
             size_t offset;
 
-            foreach (y; 0 .. 2) {
-                foreach (x; 0 .. 2) {
+            foreach(y; 0 .. 2) {
+                foreach(x; 0 .. 2) {
                     auto pixel = image[x, y];
                     assert(pixel);
 
@@ -175,10 +175,10 @@ export @safe nothrow @nogc:
 
     ///
     size_t opDollar(int op)() scope if (op == 0 || op == 1) {
-        if (isNull)
+        if(isNull)
             return 0;
 
-        static if (op == 0)
+        static if(op == 0)
             return imageRef.width;
         else
             return imageRef.height;
@@ -186,30 +186,30 @@ export @safe nothrow @nogc:
 
     ///
     size_t width() scope const {
-        if (isNull)
+        if(isNull)
             return 0;
         return imageRef.width;
     }
 
     ///
     size_t height() scope const {
-        if (isNull)
+        if(isNull)
             return 0;
         return imageRef.height;
     }
 
     ///
     ImageSlice!op opSlice(int op)(size_t start, size_t end) scope if (op == 0 || op == 1) {
-        if (isNull)
+        if(isNull)
             return typeof(return).init;
 
-        static if (op == 0) {
-            if (start < end && end < imageRef.width) {
+        static if(op == 0) {
+            if(start < end && end < imageRef.width) {
             } else {
                 return typeof(return).init;
             }
-        } else static if (op == 1) {
-            if (start < end && end < imageRef.height) {
+        } else static if(op == 1) {
+            if(start < end && end < imageRef.height) {
             } else {
                 return typeof(return).init;
             }
@@ -220,15 +220,15 @@ export @safe nothrow @nogc:
 
     ///
     Result!Image opIndex(ImageSlice!0 x, ImageSlice!1 y) scope return @trusted {
-        if (isNull)
+        if(isNull)
             return typeof(return)(NullPointerException);
 
-        if (x.start < x.end && x.end < imageRef.width) {
+        if(x.start < x.end && x.end < imageRef.width) {
         } else {
             return typeof(return)(RangeException("Start and end must be smaller than width"));
         }
 
-        if (y.start < y.end && y.end < imageRef.height) {
+        if(y.start < y.end && y.end < imageRef.height) {
         } else {
             return typeof(return)(RangeException("Start and end must be smaller than height"));
         }
@@ -243,7 +243,7 @@ export @safe nothrow @nogc:
 
     ///
     PixelReference opIndex(size_t x, size_t y) scope return @trusted {
-        if (isNull)
+        if(isNull)
             return typeof(return)(NullPointerException);
 
         assert(x < imageRef.width);
@@ -259,7 +259,7 @@ export @safe nothrow @nogc:
 
     ///
     Image dup(RCAllocator allocator = RCAllocator(), bool keepOldMetaData = false) scope @trusted {
-        if (isNull)
+        if(isNull)
             return Image.init;
 
         Image ret;
@@ -271,7 +271,7 @@ export @safe nothrow @nogc:
 
     ///
     Image dup(ColorSpace newColorSpace, RCAllocator allocator = RCAllocator(), bool keepOldMetaData = false) scope @trusted {
-        if (isNull)
+        if(isNull)
             return Image.init;
 
         Image ret;
@@ -283,7 +283,7 @@ export @safe nothrow @nogc:
 
     ///
     Image original() scope @trusted {
-        if (isNull)
+        if(isNull)
             return Image.init;
 
         Image ret;
@@ -339,8 +339,8 @@ export @safe nothrow @nogc:
         CImage ret = imageRef.raw;
         size_t offsetSoFar;
 
-        foreach (channelSpec; this.colorSpace.channels) {
-            if (channelSpec.name == channel) {
+        foreach(channelSpec; this.colorSpace.channels) {
+            if(channelSpec.name == channel) {
                 ret.dataBegin += offsetSoFar;
                 ret.pixelChannelsSize = channelSpec.numberOfBytes;
                 return ret;

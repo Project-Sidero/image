@@ -10,7 +10,8 @@ import sidero.base.errors;
 ///
 ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.text;
-    if (allocator.isNull)
+
+    if(allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
@@ -42,22 +43,22 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
         Vec3d sample;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (input.length < channel.numberOfBytes)
+            if(input.length < channel.numberOfBytes)
                 return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             double value = channel.extractSample01(input);
 
-            if (channel.name is ChannelX)
+            if(channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if(channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is ChannelZ)
+            else if(channel.name is ChannelZ)
                 index = 2;
 
-            if (index >= 0) {
+            if(index >= 0) {
                 sample[index] = value;
             }
         }
@@ -70,26 +71,26 @@ ColorSpace cie_XYZ(ubyte channelBitCount, CIEChromacityCoordinate whitePoint, RC
 
         Vec3d got = input.sample;
 
-        if (input.whitePoint != state.whitePoint) {
+        if(input.whitePoint != state.whitePoint) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is ChannelX)
+            if(channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if(channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is ChannelZ)
+            else if(channel.name is ChannelZ)
                 index = 2;
 
-            if (output.length < channel.numberOfBytes)
+            if(output.length < channel.numberOfBytes)
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
-            if (index >= 0)
+            if(index >= 0)
                 channel.store01Sample(output, got[index]);
             else
                 channel.storeDefaultSample(output);

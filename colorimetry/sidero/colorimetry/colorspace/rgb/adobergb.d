@@ -16,10 +16,11 @@ static immutable CIEChromacityCoordinate[3] AdobeRGBChromacities = [
 ColorSpace adobeRGB(ubyte channelBitCount, bool isFloat, bool isLinear = false) {
     import sidero.base.text;
 
-    if (isLinear) {
+    if(isLinear) {
         auto gamma = GammaNone.init;
         auto name = formattedWrite("AdobeRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;
-        return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, AdobeRGBChromacities, GammaNone.init, RCAllocator.init, name);
+        return rgb!GammaNone(channelBitCount, isFloat, Illuminants.D65_2Degrees, AdobeRGBChromacities, GammaNone.init,
+                RCAllocator.init, name);
     } else {
         auto gamma = GammaPower(2.19921875);
         auto name = formattedWrite("AdobeRGB_{:s}{:s}{:s}", channelBitCount, isFloat ? "f" : "", gamma).asReadOnly;

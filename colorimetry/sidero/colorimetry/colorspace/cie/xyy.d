@@ -12,7 +12,7 @@ import sidero.base.errors;
 ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.init) @trusted {
     import sidero.base.text;
 
-    if (allocator.isNull)
+    if(allocator.isNull)
         allocator = globalAllocator();
 
     ColorSpace.State* state = ColorSpace.allocate(allocator, 0);
@@ -46,22 +46,22 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         Vec3d got = void;
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (input.length < channel.numberOfBytes)
+            if(input.length < channel.numberOfBytes)
                 return Result!CIEXYZSample(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
             const value = channel.extractSample01(input);
 
-            if (channel.name is ChannelX)
+            if(channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if(channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is ChannelY2)
+            else if(channel.name is ChannelY2)
                 index = 2;
 
-            if (index >= 0) {
+            if(index >= 0) {
                 got[index] = value;
             }
         }
@@ -75,7 +75,7 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
 
         Vec3d got = input.sample;
 
-        if (input.whitePoint != state.whitePoint) {
+        if(input.whitePoint != state.whitePoint) {
             const adapt = matrixForChromaticAdaptionXYZToXYZ(input.whitePoint, state.whitePoint, ScalingMethod.Bradford);
             got = adapt.dotProduct(got);
         }
@@ -83,20 +83,20 @@ ColorSpace cie_xyY(ubyte channelBitCount, RCAllocator allocator = RCAllocator.in
         const result = Vec3d(got[0] / (got[0] + got[1] + got[2]), got[1] / (got[0] + got[1] + got[2]), got[1]);
 
         auto channels = (cast(ColorSpace.State*)state).channels;
-        foreach (channel; channels) {
+        foreach(channel; channels) {
             ptrdiff_t index = -1;
 
-            if (channel.name is ChannelX)
+            if(channel.name is ChannelX)
                 index = 0;
-            else if (channel.name is ChannelY)
+            else if(channel.name is ChannelY)
                 index = 1;
-            else if (channel.name is ChannelY2)
+            else if(channel.name is ChannelY2)
                 index = 2;
 
-            if (output.length < channel.numberOfBytes)
+            if(output.length < channel.numberOfBytes)
                 return ErrorResult(MalformedInputException("Color sample does not equal size of all channels in bytes."));
 
-            if (index >= 0)
+            if(index >= 0)
                 channel.store01Sample(output, result[index]);
             else
                 channel.storeDefaultSample(output);

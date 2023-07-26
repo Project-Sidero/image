@@ -12,30 +12,30 @@ export @safe nothrow @nogc:
 ErrorResult thresholdFilter(return scope Image image, double threshold, double lowerDelta = 0, double upperDelta = 0) @trusted {
     import std.math : isNaN, isInfinity;
 
-    if (image.isNull)
+    if(image.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
-    else if (isNaN(threshold) || isInfinity(threshold) || threshold < 0 || threshold > 1)
+    else if(isNaN(threshold) || isInfinity(threshold) || threshold < 0 || threshold > 1)
         return typeof(return)(MalformedInputException("Threshold values must be between 0 and 1 inclusive"));
-    else if (isNaN(lowerDelta) || isInfinity(lowerDelta) || lowerDelta < 0 || lowerDelta > 1)
+    else if(isNaN(lowerDelta) || isInfinity(lowerDelta) || lowerDelta < 0 || lowerDelta > 1)
         return typeof(return)(MalformedInputException("Threshold lower delta values must be between 0 and 1 inclusive"));
-    else if (isNaN(upperDelta) || isInfinity(upperDelta) || upperDelta < 0 || upperDelta > 1)
+    else if(isNaN(upperDelta) || isInfinity(upperDelta) || upperDelta < 0 || upperDelta > 1)
         return typeof(return)(MalformedInputException("Threshold upper delta values must be between 0 and 1 inclusive"));
 
     const lower = threshold - lowerDelta, upper = threshold + upperDelta;
 
-    foreach (y; 0 .. image.height) {
-        foreach (x; 0 .. image.width) {
+    foreach(y; 0 .. image.height) {
+        foreach(x; 0 .. image.width) {
             auto pixel = image[x, y];
-            if (!pixel)
+            if(!pixel)
                 return typeof(return)(pixel.getError());
 
             auto xyz = pixel.asXYZ;
-            if (!xyz)
+            if(!xyz)
                 return typeof(return)(xyz.getError());
 
-            if (xyz.sample[1] <= lower) {
+            if(xyz.sample[1] <= lower) {
                 xyz.sample = 0;
-            } else if (xyz.sample[1] > upper) {
+            } else if(xyz.sample[1] > upper) {
                 xyz.sample = 1;
             } else
                 continue;
@@ -52,33 +52,33 @@ ErrorResult thresholdFilter(return scope Image image, Vec3d threshold, double lo
         bool allMustMatch = false) @trusted {
     import std.math : isNaN, isInfinity;
 
-    if (image.isNull)
+    if(image.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
-    else if (isNaN(threshold[0]) || isInfinity(threshold[0]) || threshold[0] < 0 || threshold[0] > 1 ||
-            isNaN(threshold[1]) || isInfinity(threshold[1]) || threshold[1] < 0 || threshold[1] > 1 || isNaN(threshold[2]) ||
+    else if(isNaN(threshold[0]) || isInfinity(threshold[0]) || threshold[0] < 0 || threshold[0] > 1 || isNaN(threshold[1]) ||
+            isInfinity(threshold[1]) || threshold[1] < 0 || threshold[1] > 1 || isNaN(threshold[2]) ||
             isInfinity(threshold[2]) || threshold[2] < 0 || threshold[2] > 1)
         return typeof(return)(MalformedInputException("Threshold values must be between 0 and 1 inclusive"));
-    else if (isNaN(lowerDelta) || isInfinity(lowerDelta) || lowerDelta < 0 || lowerDelta > 1)
+    else if(isNaN(lowerDelta) || isInfinity(lowerDelta) || lowerDelta < 0 || lowerDelta > 1)
         return typeof(return)(MalformedInputException("Threshold lower delta values must be between 0 and 1 inclusive"));
-    else if (isNaN(upperDelta) || isInfinity(upperDelta) || upperDelta < 0 || upperDelta > 1)
+    else if(isNaN(upperDelta) || isInfinity(upperDelta) || upperDelta < 0 || upperDelta > 1)
         return typeof(return)(MalformedInputException("Threshold upper delta values must be between 0 and 1 inclusive"));
 
     const lower = threshold - lowerDelta, upper = threshold + upperDelta;
 
-    if (allMustMatch) {
-        foreach (y; 0 .. image.height) {
-            foreach (x; 0 .. image.width) {
+    if(allMustMatch) {
+        foreach(y; 0 .. image.height) {
+            foreach(x; 0 .. image.width) {
                 auto pixel = image[x, y];
-                if (!pixel)
+                if(!pixel)
                     return typeof(return)(pixel.getError());
 
                 auto xyz = pixel.asXYZ;
-                if (!xyz)
+                if(!xyz)
                     return typeof(return)(xyz.getError());
 
-                if (xyz.sample[0] <= lower[0] && xyz.sample[1] <= lower[1] && xyz.sample[2] <= lower[2]) {
+                if(xyz.sample[0] <= lower[0] && xyz.sample[1] <= lower[1] && xyz.sample[2] <= lower[2]) {
                     xyz.sample = 0;
-                } else if (xyz.sample[0] > upper[0] && xyz.sample[1] > upper[1] && xyz.sample[2] > upper[2]) {
+                } else if(xyz.sample[0] > upper[0] && xyz.sample[1] > upper[1] && xyz.sample[2] > upper[2]) {
                     xyz.sample = 1;
                 } else
                     continue;
@@ -87,29 +87,29 @@ ErrorResult thresholdFilter(return scope Image image, Vec3d threshold, double lo
             }
         }
     } else {
-        foreach (y; 0 .. image.height) {
-            foreach (x; 0 .. image.width) {
+        foreach(y; 0 .. image.height) {
+            foreach(x; 0 .. image.width) {
                 auto pixel = image[x, y];
-                if (!pixel)
+                if(!pixel)
                     return typeof(return)(pixel.getError());
 
                 auto xyz = pixel.asXYZ;
-                if (!xyz)
+                if(!xyz)
                     return typeof(return)(xyz.getError());
 
                 bool changed;
 
-                static foreach (i; 0 .. 3) {
-                    if (xyz.sample[i] <= lower[i]) {
+                static foreach(i; 0 .. 3) {
+                    if(xyz.sample[i] <= lower[i]) {
                         xyz.sample[i] = 0;
                         changed = true;
-                    } else if (xyz.sample[i] > upper[i]) {
+                    } else if(xyz.sample[i] > upper[i]) {
                         xyz.sample[i] = 1;
                         changed = true;
                     }
                 }
 
-                if (changed)
+                if(changed)
                     pixel = xyz.get;
             }
         }
@@ -163,16 +163,16 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
         if (Width > 0 && Height > 0 && Width % 2 == 1 && Height % 2 == 1) {
     import std.math : isInfinity, isNaN;
 
-    if (source.isNull)
+    if(source.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
     else {
-        foreach (v; filter.data) {
-            if (isInfinity(v) || isNaN(v))
+        foreach(v; filter.data) {
+            if(isInfinity(v) || isNaN(v))
                 return typeof(return)(MalformedInputException("Filter values must not be infinite or NaN"));
         }
     }
 
-    if (colorSpace.isNull)
+    if(colorSpace.isNull)
         colorSpace = source.colorSpace;
 
     const isKernelCrop = edge == ConvolutionFilterEdge.KernelCrop;
@@ -184,22 +184,22 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
     Image result;
 
     PixelReference handleExtend(ptrdiff_t x, ptrdiff_t y) @trusted {
-        if (y < 0) {
-            if (x < 0) {
+        if(y < 0) {
+            if(x < 0) {
                 // top left
                 return source[0, 0];
-            } else if (x >= endX) {
+            } else if(x >= endX) {
                 // top right
                 return source[endX - 1, 0];
             } else {
                 // top
                 return source[x, 0];
             }
-        } else if (y >= endY) {
-            if (x < 0) {
+        } else if(y >= endY) {
+            if(x < 0) {
                 // bottom left
                 return source[0, endY - 1];
-            } else if (x >= endX) {
+            } else if(x >= endX) {
                 // bottom right
                 return source[endX - 1, endY - 1];
             } else {
@@ -213,40 +213,40 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
     }
 
     PixelReference handleWrap(ptrdiff_t x, ptrdiff_t y) @trusted {
-        if (x < 0)
+        if(x < 0)
             x += endX;
-        else if (x >= endX)
+        else if(x >= endX)
             x = x - endX;
 
-        if (y < 0)
+        if(y < 0)
             y += endY;
-        else if (y >= endY)
+        else if(y >= endY)
             y = y - endY;
 
         return source[x, y];
     }
 
     PixelReference handleMirror(ptrdiff_t x, ptrdiff_t y) @trusted {
-        if (x < 0)
+        if(x < 0)
             x = (-x) - 1;
-        else if (x >= endX)
+        else if(x >= endX)
             x = endX - ((x + 1) - endX);
 
-        if (y < 0)
+        if(y < 0)
             y = (-x) - 1;
-        else if (y >= endY)
+        else if(y >= endY)
             y = endY - ((y + 1) - endY);
 
         return source[x, y];
     }
 
     PixelReference handleCrop(ptrdiff_t x, ptrdiff_t y) @trusted {
-        if (x < 0 || y < 0 || x >= endX || y >= endY)
+        if(x < 0 || y < 0 || x >= endX || y >= endY)
             return PixelReference.init;
         return source[x, y];
     }
 
-    final switch (edge) {
+    final switch(edge) {
     case ConvolutionFilterEdge.Extend:
         // image must be equal to or bigger than 1x1
         // nothing to do for this, since it'll be bigger than 0x0 anyway
@@ -256,14 +256,14 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
         break;
     case ConvolutionFilterEdge.Wrap:
         // image must be bigger than filter / 2
-        if (source.width <= filter.width / 2 || source.height <= filter.height / 2)
+        if(source.width <= filter.width / 2 || source.height <= filter.height / 2)
             return typeof(return)(MalformedInputException("Image source for wrap edge handling must be bigger than filter / 2"));
 
         acquirePixel = &handleWrap;
         break;
     case ConvolutionFilterEdge.Mirror:
         // image must be bigger than filter / 2
-        if (source.width <= filter.width / 2 || source.height <= filter.height / 2)
+        if(source.width <= filter.width / 2 || source.height <= filter.height / 2)
             return typeof(return)(MalformedInputException("Image source for mirror edge handling must be bigger than filter / 2"));
 
         // moves coord to opposite axis
@@ -272,7 +272,7 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
     case ConvolutionFilterEdge.SourceCrop:
         // image must be bigger than filter
         // image offset & actual width/height is adjusted based upon image - filter
-        if (source.width < filter.width || source.height < filter.height)
+        if(source.width < filter.width || source.height < filter.height)
             return typeof(
                     return)(MalformedInputException("Image source for source crop edge handling must be bigger or equal to filter"));
 
@@ -300,32 +300,32 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
     CIEXYZSample tempXYZ;
 
     auto startPositionPixel = source[startX, startY];
-    if (!startPositionPixel)
+    if(!startPositionPixel)
         return typeof(return)(startPositionPixel.getError());
 
     {
         auto xyz = startPositionPixel.asXYZ;
-        if (!xyz)
+        if(!xyz)
             return typeof(return)(xyz.getError());
 
         tempXYZ.whitePoint = xyz.whitePoint;
     }
 
-    foreach (ptrdiff_t y; startY .. actualHeight + startY) {
-        foreach (ptrdiff_t x; startX .. actualWidth + startX) {
+    foreach(ptrdiff_t y; startY .. actualHeight + startY) {
+        foreach(ptrdiff_t x; startX .. actualWidth + startX) {
             auto output = result[x - startX, y - startY];
-            if (!output)
+            if(!output)
                 return typeof(return)(output.getError());
 
             {
                 tempXYZ.sample = 0;
 
-                foreach (ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
-                    foreach (ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
+                foreach(ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
+                    foreach(ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
                         auto sourcePixel = acquirePixel(fx, fy);
 
-                        if (sourcePixel.isNull) {
-                            if (isKernelCrop) {
+                        if(sourcePixel.isNull) {
+                            if(isKernelCrop) {
                                 // does not contribute to filter
                                 continue;
                             } else {
@@ -336,7 +336,7 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
                         const multiplier = filter[fx - deltaFx, fy - deltaFy];
 
                         auto xyz = sourcePixel.asXYZ;
-                        if (!xyz)
+                        if(!xyz)
                             return typeof(return)(xyz.getError());
 
                         tempXYZ.sample += xyz.sample * multiplier;
@@ -347,20 +347,20 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
             }
 
             {
-                foreach (channel; colorSpace.channels) {
-                    if (!channel.isAuxiliary || channel.blendMode != ChannelSpecification.BlendMode.Proportional)
+                foreach(channel; colorSpace.channels) {
+                    if(!channel.isAuxiliary || channel.blendMode != ChannelSpecification.BlendMode.Proportional)
                         continue;
-                    else if (startPositionPixel.channel01(channel.name).isNull)
+                    else if(startPositionPixel.channel01(channel.name).isNull)
                         continue;
 
                     double sample = 0;
 
-                    foreach (ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
-                        foreach (ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
+                    foreach(ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
+                        foreach(ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
                             auto sourcePixel = acquirePixel(fx, fy);
 
-                            if (sourcePixel.isNull) {
-                                if (isKernelCrop) {
+                            if(sourcePixel.isNull) {
+                                if(isKernelCrop) {
                                     // does not contribute to filter
                                     continue;
                                 } else {
@@ -371,7 +371,7 @@ Result!Image convolutionFilter(size_t Width, size_t Height)(return scope Image s
                             const multiplier = filter[fx - deltaFx, fy - deltaFy];
 
                             auto got = sourcePixel.channel01(channel.name);
-                            if (!got)
+                            if(!got)
                                 return typeof(return)(got.getError());
 
                             sample += got.get * multiplier;
@@ -396,23 +396,23 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
         if (Width > 0 && Height > 0 && Width % 2 == 1 && Height % 2 == 1) {
     import std.math : isInfinity, isNaN;
 
-    if (source.isNull)
+    if(source.isNull)
         return typeof(return)(NullPointerException("Input image is null"));
-    else if (constant.isNull)
+    else if(constant.isNull)
         return typeof(return)(NullPointerException("Input constant pixel is null"));
     else {
-        foreach (v; filter.data) {
-            if (isInfinity(v) || isNaN(v))
+        foreach(v; filter.data) {
+            if(isInfinity(v) || isNaN(v))
                 return typeof(return)(MalformedInputException("Filter values must not be infinite or NaN"));
         }
     }
 
-    if (colorSpace.isNull)
+    if(colorSpace.isNull)
         colorSpace = source.colorSpace;
 
-    if (constant.colorSpace != source.colorSpace) {
+    if(constant.colorSpace != source.colorSpace) {
         auto got = constant.convertTo(source.colorSpace);
-        if (!got)
+        if(!got)
             return typeof(return)(got.getError());
         constant = got.get;
     }
@@ -424,42 +424,42 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
     CIEXYZSample tempXYZ;
 
     PixelReference acquirePixel(ptrdiff_t x, ptrdiff_t y) @trusted {
-        if (x < 0 || y < 0 || x >= endX || y >= endY)
+        if(x < 0 || y < 0 || x >= endX || y >= endY)
             return PixelReference(constant);
         return source[x, y];
     }
 
     auto startPositionPixel = source[startX, startY];
-    if (!startPositionPixel)
+    if(!startPositionPixel)
         return typeof(return)(startPositionPixel.getError());
 
     {
         auto xyz = startPositionPixel.asXYZ;
-        if (!xyz)
+        if(!xyz)
             return typeof(return)(xyz.getError());
 
         tempXYZ.whitePoint = xyz.whitePoint;
     }
 
-    foreach (ptrdiff_t y; startY .. actualHeight + startY) {
-        foreach (ptrdiff_t x; startX .. actualWidth + startX) {
+    foreach(ptrdiff_t y; startY .. actualHeight + startY) {
+        foreach(ptrdiff_t x; startX .. actualWidth + startX) {
             auto output = result[x - startX, y - startY];
-            if (!output)
+            if(!output)
                 return typeof(return)(output.getError());
 
             {
                 tempXYZ.sample = 0;
 
-                foreach (ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
-                    foreach (ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
+                foreach(ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
+                    foreach(ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
                         auto sourcePixel = acquirePixel(fx, fy);
-                        if (sourcePixel.isNull)
+                        if(sourcePixel.isNull)
                             return typeof(return)(sourcePixel.getError());
 
                         const multiplier = filter[fx - deltaFx, fy - deltaFy];
 
                         auto xyz = sourcePixel.asXYZ;
-                        if (!xyz)
+                        if(!xyz)
                             return typeof(return)(xyz.getError());
 
                         tempXYZ.sample += xyz.sample * multiplier;
@@ -470,24 +470,24 @@ Result!Image convolutionFilterConstant(size_t Width, size_t Height)(return scope
             }
 
             {
-                foreach (channel; colorSpace.channels) {
-                    if (!channel.isAuxiliary || channel.blendMode != ChannelSpecification.BlendMode.Proportional)
+                foreach(channel; colorSpace.channels) {
+                    if(!channel.isAuxiliary || channel.blendMode != ChannelSpecification.BlendMode.Proportional)
                         continue;
-                    else if (startPositionPixel.channel01(channel.name).isNull)
+                    else if(startPositionPixel.channel01(channel.name).isNull)
                         continue;
 
                     double sample = 0;
 
-                    foreach (ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
-                        foreach (ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
+                    foreach(ptrdiff_t fy; deltaFy .. filter.height + deltaFy) {
+                        foreach(ptrdiff_t fx; deltaFx .. filter.width + deltaFx) {
                             auto sourcePixel = acquirePixel(fx, fy);
-                            if (sourcePixel.isNull)
+                            if(sourcePixel.isNull)
                                 return typeof(return)(sourcePixel.getError());
 
                             const multiplier = filter[fx - deltaFx, fy - deltaFy];
 
                             auto got = sourcePixel.channel01(channel.name);
-                            if (!got)
+                            if(!got)
                                 return typeof(return)(got.getError());
 
                             sample += got.get * multiplier;

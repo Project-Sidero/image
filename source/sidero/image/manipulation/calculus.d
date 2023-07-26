@@ -73,9 +73,9 @@ Result!Image overOf(scope Image first, scope Image firstMatte, scope Image secon
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -86,7 +86,7 @@ Result!Image overOf(scope Image first, scope Image firstMatte, scope Image secon
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => 1, (double a, double b) => 1 - a);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -104,9 +104,9 @@ Result!Image inOf(scope Image first, scope Image firstMatte, scope Image second,
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -117,7 +117,7 @@ Result!Image inOf(scope Image first, scope Image firstMatte, scope Image second,
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => b, (double a, double b) => 0);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -135,9 +135,9 @@ Result!Image outOf(scope Image first, scope Image firstMatte, scope Image second
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -148,7 +148,7 @@ Result!Image outOf(scope Image first, scope Image firstMatte, scope Image second
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => 1 - b, (double a, double b) => 0);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -166,9 +166,9 @@ Result!Image atopOf(scope Image first, scope Image firstMatte, scope Image secon
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -179,7 +179,7 @@ Result!Image atopOf(scope Image first, scope Image firstMatte, scope Image secon
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => b, (double a, double b) => 1 - a);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -197,9 +197,9 @@ Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -210,7 +210,7 @@ Result!Image xorOf(scope Image first, scope Image firstMatte, scope Image second
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => 1 - b, (double a, double b) => 1 - a);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -228,9 +228,9 @@ Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image secon
 
     import std.algorithm : max;
 
-    if (first.isNull)
+    if(first.isNull)
         return typeof(return)(NullPointerException("First image must not be null"));
-    else if (second.isNull)
+    else if(second.isNull)
         return typeof(return)(NullPointerException("second image must not be null"));
 
     size_t resultWidth = max(first.width, second.width, firstMatte.isNull ? 0 : firstMatte.width, secondMatte.isNull ?
@@ -241,7 +241,7 @@ Result!Image plusOf(scope Image first, scope Image firstMatte, scope Image secon
     auto errored = booleanOperation(result, first, firstMatte, second, secondMatte, fallbackColor, (double a,
             double b) => 1, (double a, double b) => 1);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -254,33 +254,33 @@ Result!Image arithmeticOperationWrapper(bool addNotSet, scope Image[] images, sc
         return scope ColorSpace colorSpace = ColorSpace.init, return scope RCAllocator allocator = RCAllocator.init) @trusted {
     import std.math : isInfinity, isNaN;
 
-    if (images.length == 0)
+    if(images.length == 0)
         return typeof(return)();
 
     size_t resultWidth, resultHeight;
 
-    foreach (image; images) {
-        if (image.isNull)
+    foreach(image; images) {
+        if(image.isNull)
             return typeof(return)(NullPointerException("All images must be non-null"));
 
-        if (resultWidth < image.width)
+        if(resultWidth < image.width)
             resultWidth = image.width;
-        if (resultHeight < image.height)
+        if(resultHeight < image.height)
             resultHeight = image.height;
     }
 
-    foreach (intensity; intensities) {
-        if (isInfinity(intensity) || isNaN(intensity))
+    foreach(intensity; intensities) {
+        if(isInfinity(intensity) || isNaN(intensity))
             return typeof(return)(MalformedInputException("No intensity may be NaN or infinite"));
     }
 
-    if (colorSpace.isNull)
+    if(colorSpace.isNull)
         colorSpace = images[0].colorSpace;
 
     Image result = Image(colorSpace, resultWidth, resultHeight, allocator);
     auto errored = arithmeticOperation(result, addNotSet, images, intensities, average, sumIntensity, fallbackColor, allocator);
 
-    if (errored)
+    if(errored)
         return typeof(return)(errored.getError);
     else
         return typeof(return)(result);
@@ -290,17 +290,17 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
         bool average, double sumIntensity, scope Pixel fallbackColor, return scope RCAllocator allocator) @trusted {
     import sidero.colorimetry.colorspace.cie.chromaticadaption;
 
-    if (result.isNull || images.length == 0)
+    if(result.isNull || images.length == 0)
         return typeof(return).init;
 
-    foreach (image; images) {
-        if (image.isNull)
+    foreach(image; images) {
+        if(image.isNull)
             return typeof(return)(NullPointerException("All images must be non-null"));
-        else if (image.width < result.width || image.height < result.height)
+        else if(image.width < result.width || image.height < result.height)
             return typeof(return)(MalformedInputException("Input images must be equal to or smaller than result image"));
     }
 
-    if (average)
+    if(average)
         sumIntensity *= 1f / images.length;
 
     auto targetWhitePoint = result.colorSpace.whitePoint;
@@ -315,11 +315,11 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
     {
         needCA.reserve(images.length);
 
-        foreach (image; images) {
+        foreach(image; images) {
             auto imageWP = image.colorSpace.whitePoint;
             bool need = targetWhitePoint != imageWP;
 
-            if (need) {
+            if(need) {
                 needCA ~= CAv(true, matrixForChromaticAdaptionXYZToXYZ(imageWP, targetWhitePoint, ScalingMethod.Bradford));
             } else
                 needCA ~= CAv(false);
@@ -328,13 +328,13 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
 
     Vec3d fallbackXYZ; // default is black when Y = 0
 
-    if (!fallbackColor.isNull) {
+    if(!fallbackColor.isNull) {
         auto got = fallbackColor.asXYZ;
 
-        if (got) {
+        if(got) {
             auto fbcWP = got.whitePoint;
 
-            if (fbcWP != targetWhitePoint) {
+            if(fbcWP != targetWhitePoint) {
                 auto adapt = matrixForChromaticAdaptionXYZToXYZ(fbcWP, targetWhitePoint, ScalingMethod.Bradford);
                 fallbackXYZ = adapt.dotProduct(got.sample);
             } else
@@ -350,9 +350,9 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
 
         bool gotOne;
 
-        foreach (imageI, image; images) {
+        foreach(imageI, image; images) {
             auto got = image[x, y];
-            if (got) {
+            if(got) {
                 gotOne = true;
 
                 CIEXYZSample temp = got.asXYZ.assumeOkay;
@@ -360,39 +360,39 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 {
                     auto imageCAv = needCA[imageI];
 
-                    if (imageCAv.need)
+                    if(imageCAv.need)
                         temp.sample = imageCAv.matrix.dotProduct(temp.sample);
                 }
 
-                if (imageI < intensities.length)
+                if(imageI < intensities.length)
                     temp.sample *= intensities[imageI];
 
                 cieXYZSample.sample += temp.sample;
             }
         }
 
-        if (gotOne)
+        if(gotOne)
             cieXYZSample.sample *= sumIntensity;
         else
             cieXYZSample.sample = fallbackXYZ;
     }
 
     void fillInAuxiliary(scope ref Pixel output, size_t x, size_t y) {
-        foreach (c; result.colorSpace.channels) {
-            if (!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+        foreach(c; result.colorSpace.channels) {
+            if(!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
                 continue;
 
             bool gotOne;
             double temp = 0;
 
-            foreach (imageI, image; images) {
+            foreach(imageI, image; images) {
                 auto got = image[x, y];
-                if (!got)
+                if(!got)
                     continue;
 
                 auto got2 = got.channel01(c.name);
-                if (got2) {
-                    if (intensities.length > imageI)
+                if(got2) {
+                    if(intensities.length > imageI)
                         temp += got2.get * intensities[imageI];
                     else
                         temp += got2.get;
@@ -400,16 +400,16 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
                 }
             }
 
-            if (gotOne) {
+            if(gotOne) {
                 temp *= sumIntensity;
                 cast(void)output.channel01(c.name, temp);
             }
         }
     }
 
-    if (addNotSet) {
-        foreach (y; 0 .. result.height) {
-            foreach (x; 0 .. result.width) {
+    if(addNotSet) {
+        foreach(y; 0 .. result.height) {
+            foreach(x; 0 .. result.width) {
                 PixelReference output = result[x, y];
                 assert(output);
 
@@ -421,8 +421,8 @@ ErrorResult arithmeticOperation(scope Image result, bool addNotSet, scope Image[
             }
         }
     } else {
-        foreach (y; 0 .. result.height) {
-            foreach (x; 0 .. result.width) {
+        foreach(y; 0 .. result.height) {
+            foreach(x; 0 .. result.width) {
                 PixelReference output = result[x, y];
                 assert(output);
 
@@ -456,21 +456,21 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
 
     const firstHaveAlpha = first.colorSpace.haveChannel("a"), firstNeedsMatte = !firstMatte.isNull &&
         firstMatte.colorSpace.haveChannel("Y"), firstNeedsCA = result.colorSpace.whitePoint != first.colorSpace.whitePoint,
-        secondHaveAlpha = second.colorSpace.haveChannel("a"), secondNeedsMatte = !secondMatte.isNull &&
+    secondHaveAlpha = second.colorSpace.haveChannel("a"), secondNeedsMatte = !secondMatte.isNull &&
         secondMatte.colorSpace.haveChannel("Y"), secondNeedsCA = result.colorSpace.whitePoint != second.colorSpace.whitePoint;
 
-    if (!firstHaveAlpha && !firstNeedsMatte)
+    if(!firstHaveAlpha && !firstNeedsMatte)
         return typeof(return)(MalformedInputException(
                 "Boolean operations on images require some sort of matte in either explicit with Y channel or alpha (first)"));
-    else if (!secondHaveAlpha && !secondNeedsMatte)
+    else if(!secondHaveAlpha && !secondNeedsMatte)
         return typeof(return)(MalformedInputException(
                 "Boolean operations on images require some sort of matte in either explicit with Y channel or alpha (second)"));
 
     Vec3d fallbackXYZ = void; // default is black when Y = 0
 
-    if (!fallbackColor.isNull) {
+    if(!fallbackColor.isNull) {
         auto got = fallbackColor.asXYZ;
-        if (got)
+        if(got)
             fallbackXYZ = got.sample;
     }
 
@@ -485,11 +485,11 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         {
             auto pixel = first[x, y];
 
-            if (pixel) {
+            if(pixel) {
                 auto gotXYZ = pixel.asXYZ;
                 assert(gotXYZ);
 
-                if (firstNeedsCA) {
+                if(firstNeedsCA) {
                     auto caXYZ = adaptFirst.dotProduct(gotXYZ.sample);
                     ret[0][0] = caXYZ[0];
                     ret[0][1] = caXYZ[1];
@@ -500,10 +500,10 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
                     ret[0][2] = gotXYZ.sample[2];
                 }
 
-                if (firstNeedsMatte) {
+                if(firstNeedsMatte) {
                     auto pixelM = firstMatte[x, y];
 
-                    if (pixelM) {
+                    if(pixelM) {
                         auto gotY = pixelM.channel01("Y");
                         assert(gotY);
                         ret[1][3] = gotY.get;
@@ -524,11 +524,11 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
         {
             auto pixel = second[x, y];
 
-            if (pixel) {
+            if(pixel) {
                 auto gotXYZ = pixel.asXYZ;
                 assert(gotXYZ);
 
-                if (secondNeedsCA) {
+                if(secondNeedsCA) {
                     auto caXYZ = adaptSecond.dotProduct(gotXYZ.sample);
                     ret[0][0] = caXYZ[0];
                     ret[0][1] = caXYZ[1];
@@ -539,10 +539,10 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
                     ret[1][2] = gotXYZ.sample[2];
                 }
 
-                if (secondNeedsMatte) {
+                if(secondNeedsMatte) {
                     auto pixelM = secondMatte[x, y];
 
-                    if (pixelM) {
+                    if(pixelM) {
                         auto gotY = pixelM.channel01("Y");
                         assert(gotY);
                         ret[1][3] = gotY.get;
@@ -564,26 +564,26 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
     }
 
     void fillInAuxiliary(scope ref Pixel output, size_t x, size_t y) {
-        foreach (c; result.colorSpace.channels) {
-            if (!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
+        foreach(c; result.colorSpace.channels) {
+            if(!c.isAuxiliary || c.blendMode == ChannelSpecification.BlendMode.ExactOrDefaultOnly)
                 continue;
 
             bool gotOne;
             double temp = 0;
 
-            foreach (imageI, image; [first, second]) {
+            foreach(imageI, image; [first, second]) {
                 auto got = image[x, y];
-                if (!got)
+                if(!got)
                     continue;
 
                 auto got2 = got.channel01(c.name);
-                if (got2) {
+                if(got2) {
                     temp += got2.get;
                     gotOne = true;
                 }
             }
 
-            if (gotOne) {
+            if(gotOne) {
                 temp /= 2;
                 cast(void)output.channel01(c.name, temp);
             }
@@ -593,8 +593,8 @@ ErrorResult booleanOperation(scope Image result, scope Image first, scope Image 
     CIEXYZSample cieXYZSample = void;
     cieXYZSample.whitePoint = result.colorSpace.whitePoint;
 
-    foreach (y; 0 .. result.height) {
-        foreach (x; 0 .. result.width) {
+    foreach(y; 0 .. result.height) {
+        foreach(x; 0 .. result.width) {
             PixelReference output = result[x, y];
             assert(output);
 

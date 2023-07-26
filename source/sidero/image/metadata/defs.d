@@ -32,7 +32,7 @@ export @safe nothrow @nogc:
 
     ///
     ref Type get() scope return @trusted {
-        if (isNull)
+        if(isNull)
             assert(0);
 
         Type* ret = reference.get.getMetaDataRef!Type();
@@ -51,10 +51,10 @@ export @safe nothrow @nogc:
 
     ///
     bool isNull() scope const {
-        if (!reference || reference.isNull)
+        if(!reference || reference.isNull)
             return true;
 
-        static if (__traits(hasMember, Type, "isNull")) {
+        static if(__traits(hasMember, Type, "isNull")) {
             Type* ret = reference.getMetaDataRef!Type();
             assert(ret !is null);
             return ret.isNull;
