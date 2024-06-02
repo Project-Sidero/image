@@ -75,11 +75,12 @@ struct ColorSpace {
     }
 
     ///
-    bool isNull() scope {
+    bool isNull() scope const {
         return state is null;
     }
 
     void opAssign(return scope ColorSpace other) scope {
+        this.destroy;
         this.__ctor(other);
     }
 

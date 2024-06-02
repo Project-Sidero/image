@@ -39,12 +39,12 @@ struct ScalingMethodInfo {
     }
 }
 
-static const AllScalingMethods = [
+static immutable AllScalingMethods = [
     ScalingMethodInfo(1, 0, 0, 0, 1, 0, 0, 0, 1),
     ScalingMethodInfo(0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296),
     ScalingMethodInfo(0.40024, 0.7076, -0.08081, -0.2263, 1.16532, 0.0457, 0, 0, 0.91822)
 ];
-static assert([__traits(allMembers, ScalingMethod)].length == AllScalingMethods.length);
+static assert(__traits(allMembers, ScalingMethod).length == AllScalingMethods.length);
 
 unittest {
     import sidero.colorimetry.illuminants;

@@ -174,6 +174,12 @@ export @safe nothrow @nogc:
     }
 
     ///
+    void opAssign(return scope Image other) scope {
+        this.destroy;
+        this.__ctor(other);
+    }
+
+    ///
     size_t opDollar(int op)() scope if (op == 0 || op == 1) {
         if(isNull)
             return 0;

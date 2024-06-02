@@ -49,7 +49,7 @@ struct Pixel {
 @safe nothrow @nogc:
 
     ///
-    bool isNull() scope {
+    bool isNull() scope const {
         return this.data is null;
     }
 
@@ -307,6 +307,12 @@ struct Pixel {
             return;
 
         cast(void)this.colorSpace.fromXYZ(this.data, cieXYZSample);
+    }
+
+    ///
+    void opAssign(return scope Pixel other) scope {
+        this.destroy;
+        this.__ctor(other);
     }
 
     ///
